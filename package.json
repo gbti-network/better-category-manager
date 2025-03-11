@@ -1,0 +1,13 @@
+{
+  "name": "better-category-manager",
+  "version": "1.3.2",
+  "description": "A powerful WordPress plugin for advanced category management",
+  "scripts": {
+    "commit": "cd scripts && node commit.js",
+    "build": "cd scripts && npm run build",
+    "release": "cd scripts && npm run release",
+    "translate": "cd scripts && npm run translate"
+  },
+  "author": "GBTI Labs",
+  "license": "GPL-2.0-or-later"
+}

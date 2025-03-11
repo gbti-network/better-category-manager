@@ -1,0 +1,30 @@
+.BCM-loader {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  --c:no-repeat linear-gradient(#1897f1 0 0);
+  background: 
+    var(--c),var(--c),var(--c),
+    var(--c),var(--c),var(--c),
+    var(--c),var(--c),var(--c);
+  background-size: 16px 16px;
+  animation: 
+    BCM-loader-size 1s infinite,
+    BCM-loader-position 1s infinite;
+}
+
+.BCM-loader:before {
+  content:'';
+  position: absolute;
+  inset: 0;
+}
+
+@keyframes BCM-loader-size {
+  0%,100% {width:45px;height: 45px}
+  35%,65% {width:65px;height: 65px}
+}
+
+@keyframes BCM-loader-position {
+  0%,40%  {background-position: 0 0,0 50%, 0 100%,50% 100%,100% 100%,100% 50%,100% 0,50% 0,  50% 50% }
+  60%,100%{background-position: 0 50%, 0 100%,50% 100%,100% 100%,100% 50%,100% 0,50% 0,0 0,  50% 50% }
+}

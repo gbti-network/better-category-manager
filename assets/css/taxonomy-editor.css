@@ -1,0 +1,632 @@
+/**
+ * BCM Category Editor Styles
+ */
+
+/* Main Layout */
+.BCM-category-manager {
+    margin: 20px 0;
+    position: relative;
+}
+
+.BCM-main-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    position: relative; /* For absolute positioning of controls */
+}
+
+/* Header Controls */
+.BCM-category-controls {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+    padding: 15px;
+}
+
+.BCM-control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.BCM-category-select {
+    min-width: 177px;
+}
+
+#term-search {
+    width: 200px;
+    padding: 8px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+/* Tree Controls (Expand/Collapse All) */
+.BCM-tree-controls {
+    z-index: 100;
+    gap: 5px;
+    text-align: right;
+    margin-top: 16px;
+    margin-bottom: 15px;
+    margin-right: 4px;
+}
+
+.BCM-tree-controls .button {
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 28px;
+    cursor: pointer;
+}
+
+.BCM-tree-controls .BCM-expand-all {
+    display:none;
+}
+
+.BCM-tree-controls .button:hover {
+    background-color: #f0f0f1;
+}
+
+/* Terms Tree */
+.BCM-terms-tree {
+    flex: 2;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    overflow: auto;
+    padding: 15px;
+    position: relative;
+}
+
+/* Term List Structure */
+.BCM-term-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    min-height: 10px; /* Ensures lists are droppable even when empty */
+}
+
+.BCM-term-list ul,
+.BCM-term-list .BCM-term-list {
+    margin-left: 20px !important;
+    padding-left: 12px !important;
+    border-left: 1px dashed #ccd0d4;
+}
+
+.BCM-term-list > li {
+    margin-bottom: 1px;
+}
+
+/* Term Row */
+.BCM-term-row {
+    position: relative;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.BCM-term-row:hover {
+    border-color: #2271b1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.BCM-term-content {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    min-height: 40px;
+    gap: 8px;
+}
+
+/* Drag Handle */
+.BCM-term-handle {
+    width: 20px;
+    height: 20px;
+    cursor: move;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.BCM-term-handle:hover {
+    color: #2271b1;
+}
+
+.BCM-term-handle .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Term Information */
+.BCM-term-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.BCM-term-name {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.BCM-term-count {
+    color: #666;
+    font-size: 12px;
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Toggle Children Button */
+.BCM-toggle-children {
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #1d2327;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    transition: all 0.2s ease;
+}
+
+.BCM-toggle-children:hover {
+    color: #2271b1;
+}
+
+.BCM-toggle-children .dashicons {
+    transition: transform 0.2s ease;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.BCM-toggle-children.expanded .dashicons {
+    transform: rotate(90deg);
+}
+
+/* Term Actions */
+.BCM-term-actions {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: flex;
+    gap: 8px;
+}
+
+.BCM-term-content:hover .BCM-term-actions {
+    opacity: 1;
+}
+
+.BCM-term-actions .dashicons {
+    margin-top: 3px;
+}
+
+/* Drag and Drop States */
+.BCM-term-row.is-dragging {
+    opacity: 0.7;
+    background: #f8f9fa;
+    border: 2px dashed #2271b1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Visual indicator for potential parent */
+.BCM-term-row.potential-parent {
+    background-color: #f0f7fc;
+    border: 2px solid #2271b1;
+    border-bottom: none;
+    position: relative;
+}
+
+.BCM-term-row.potential-parent::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    background-color: #2271b1;
+    z-index: 1;
+}
+
+/* Helper text for nesting indication */
+.nesting-helper {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #2271b1;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 2;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Temporary Drop Containers */
+.temp-drop-container {
+    height: 0;
+    opacity: 0;
+    transition: all 0.2s ease;
+    background: rgba(34, 113, 177, 0.05);
+    border-left: 2px dashed #2271b1;
+    margin-left: 20px;
+    padding: 0;
+}
+
+.temp-drop-container.active {
+    height: 40px;
+    opacity: 1;
+    margin-left: 20px !important;
+    padding-left: 12px !important;
+}
+
+/* Placeholder Styling */
+.BCM-term-placeholder {
+    border: 2px dashed #2271b1;
+    margin-left:20px;
+    height: 40px !important;
+    border-radius: 3px;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+}
+
+.BCM-term-placeholder.is-child-indent {
+    margin-left: 40px !important;
+    border-left: 4px solid #2271b1;
+    background: rgba(34, 113, 177, 0.1);
+    position: relative;
+}
+
+.BCM-term-placeholder.is-child-indent::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    width: 16px;
+    height: 2px;
+    background-color: #2271b1;
+}
+
+/* Drop Zone Indicators */
+.BCM-term-row.show-drop-zone::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 30%;
+    background: linear-gradient(90deg, transparent, rgba(34, 113, 177, 0.1));
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Term Editor Sidebar */
+.BCM-term-editor {
+    flex: 1;
+    min-width: 322px;
+    max-width: 400px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+}
+
+.BCM-term-editor-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #ccd0d4;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.BCM-term-editor-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.BCM-term-editor-content {
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.BCM-form-actions .dashicons {
+    margin-top:4px;
+}
+
+/* Form Fields */
+.BCM-form-field {
+    margin-bottom: 20px;
+}
+
+.BCM-form-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.BCM-form-field input[type="text"],
+.BCM-form-field textarea,
+.BCM-form-field select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.BCM-form-field input[type="text"]:focus,
+.BCM-form-field textarea:focus,
+.BCM-form-field select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+.BCM-form-field .description {
+    color: #666;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* OpenAI Controls */
+.openai-controls {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+#generate-description {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.dashicons-editor-spellcheck {
+    margin-top: 6px;
+    margin-right: 6px;
+}
+
+/* Form Actions */
+.BCM-form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    gap: 10px;
+}
+
+/* Loading Overlay */
+.BCM-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.BCM-loading-overlay .spinner {
+    float: none;
+    visibility: visible;
+    margin: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 0.9;
+        transform: translateY(-50%);
+    }
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* RTL Support */
+.rtl .BCM-term-list ul {
+    margin-right: 24px;
+    margin-left: 0;
+    border-right: 1px dashed #ccd0d4;
+    border-left: none;
+    padding-right: 12px;
+    padding-left: 0;
+}
+
+.rtl .nesting-helper {
+    left: 10px;
+    right: auto;
+}
+
+/* Accessibility */
+.BCM-category-manager .screen-reader-text {
+    border: 0;
+    clip: rect(1px, 1px, 1px, 1px);
+    clip-path: inset(50%);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+    word-wrap: normal !important;
+}
+
+.BCM-category-manager button:focus,
+.BCM-category-manager input:focus,
+.BCM-category-manager select:focus,
+.BCM-category-manager textarea:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 782px) {
+    .BCM-main-container {
+        flex-direction: column;
+    }
+
+    .BCM-term-editor {
+        max-width: none;
+    }
+
+    .BCM-category-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .BCM-control-group {
+        flex-direction: column;
+    }
+
+    #term-search,
+    .BCM-category-select {
+        width: 100%;
+    }
+
+    .nesting-helper {
+        display: none; /* Hide helper text on mobile */
+    }
+}
+
+/* Hierarchy controls styling for non-hierarchical taxonomies */
+.BCM-flat-category .BCM-term-handle {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.BCM-flat-category .BCM-term-handle:hover {
+    background-color: transparent;
+}
+
+.BCM-flat-category .BCM-term-row {
+    padding-left: 10px; /* Reduce indentation for flat taxonomies */
+}
+
+.BCM-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Notification Banner System - Updated with more visibility */
+.BCM-notification-container {
+    position: fixed;
+    top: 50px; /* Increased to be more visible */
+    right: 20px;
+    z-index: 10000; /* Increased z-index to ensure it's on top */
+    max-width: 400px;
+}
+
+.BCM-notification {
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Enhanced shadow */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: BCM-slide-in 0.3s ease-out forwards;
+    opacity: 0;
+    transform: translateX(50px);
+}
+
+.BCM-notification.BCM-fadeout {
+    animation: BCM-fade-out 0.5s ease-out forwards;
+}
+
+.BCM-notification-success {
+    background-color: #dff2bf;
+    color: #4F8A10;
+    border-left: 4px solid #4F8A10;
+    font-weight: bold; /* Made success messages more prominent */
+}
+
+.BCM-notification-error {
+    background-color: #ffbaba;
+    color: #D8000C;
+    border-left: 4px solid #D8000C;
+}
+
+.BCM-notification-warning {
+    background-color: #feefb3;
+    color: #9F6000;
+    border-left: 4px solid #9F6000;
+}
+
+.BCM-notification-info {
+    background-color: #bde5f8;
+    color: #00529B;
+    border-left: 4px solid #00529B;
+}
+
+.BCM-notification-close {
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 20px;
+    opacity: 0.7;
+}
+
+.BCM-notification-close:hover {
+    opacity: 1;
+}
+
+.BCM-notification-content {
+    flex: 1;
+}
+
+@keyframes BCM-slide-in {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes BCM-fade-out {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+}

@@ -1,0 +1,99 @@
+{
+    "languages": {
+        "es_ES": {
+            "enabled": true,
+            "name": "Spanish",
+            "code": "es"
+        },
+        "de_DE": {
+            "enabled": true,
+            "name": "German",
+            "code": "de"
+        },
+        "fr_FR": {
+            "enabled": true,
+            "name": "French",
+            "code": "fr"
+        },
+        "pt_PT": {
+            "enabled": true,
+            "name": "Portuguese",
+            "code": "pt"
+        },
+        "he_IL": {
+            "enabled": true,
+            "name": "Hebrew",
+            "code": "he"
+        },
+        "ar": {
+            "enabled": true,
+            "name": "Arabic",
+            "code": "ar"
+        },
+        "hi_IN": {
+            "enabled": true,
+            "name": "Hindi",
+            "code": "hi"
+        },
+        "ja_JP": {
+            "enabled": true,
+            "name": "Japanese",
+            "code": "ja"
+        },
+        "ko_KR": {
+            "enabled": true,
+            "name": "Korean",
+            "code": "ko"
+        },
+        "it_IT": {
+            "enabled": true,
+            "name": "Italian",
+            "code": "it"
+        },
+        "nl_NL": {
+            "enabled": true,
+            "name": "Dutch",
+            "code": "nl"
+        },
+        "pl_PL": {
+            "enabled": true,
+            "name": "Polish",
+            "code": "pl"
+        },
+        "ru_RU": {
+            "enabled": true,
+            "name": "Russian",
+            "code": "ru"
+        },
+        "sv_SE": {
+            "enabled": true,
+            "name": "Swedish",
+            "code": "sv"
+        },
+        "el": {
+            "enabled": true,
+            "name": "Greek",
+            "code": "el"
+        },
+        "fi": {
+            "enabled": true,
+            "name": "Finnish",
+            "code": "fi"
+        },
+        "da_DK": {
+            "enabled": true,
+            "name": "Danish",
+            "code": "da"
+        },
+        "nb_NO": {
+            "enabled": true,
+            "name": "Norwegian Bokmål",
+            "code": "nb"
+        }
+    },
+    "translationOptions": {
+        "autoTranslate": false,
+        "forceUpdate": false,
+        "backupExisting": true
+    }
+}

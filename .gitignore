@@ -1,0 +1,44 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies
+/node_modules
+/scripts/node_modules
+/vendor
+
+# Build outputs
+/dist
+/build
+*.zip
+.backup
+.backup/**
+.data
+.data/**
+
+# IDE specific
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+*.log
+/logs
+debug.log
+
+# Snapshots
+.snapshots/
+*.snapshot
+
+# Product
+.product/assets
+
+*.po

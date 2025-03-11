@@ -1,0 +1,153 @@
+/**
+ * Styles for the BCM Logs Widget
+ */
+.BCM-logs-widget {
+    margin: 0 -12px;
+    padding: 10px;
+    position: relative;
+}
+
+.BCM-logs-header {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e5e5;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.BCM-logs-content {
+    padding: 0 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    background: #fff;
+}
+
+.BCM-log-entry {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.BCM-log-entry:last-child {
+    border-bottom: none;
+}
+
+.BCM-log-entry.debug { color: #666; }
+.BCM-log-entry.info { color: #0073aa; }
+.BCM-log-entry.warning { color: #dba617; }
+.BCM-log-entry.error { color: #dc3232; }
+
+.BCM-log-time {
+    color: #666;
+    margin-right: 10px;
+}
+
+.BCM-log-level {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.BCM-log-level-error {
+    background-color: #ffeaea;
+}
+
+.BCM-log-level-error .BCM-log-level {
+    color: #dc3232;
+}
+
+.BCM-log-level-warning {
+    background-color: #fff8e5;
+}
+
+.BCM-log-level-warning .BCM-log-level {
+    color: #dba617;
+}
+
+.BCM-log-level-info {
+    background-color: #e5f5fa;
+}
+
+.BCM-log-level-info .BCM-log-level {
+    color: #00a0d2;
+}
+
+.BCM-log-level-debug {
+    background-color: #f7f7f7;
+}
+
+.BCM-log-level-debug .BCM-log-level {
+    color: #666;
+}
+
+.BCM-logs-loading,
+.BCM-no-logs,
+.BCM-logs-error {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.BCM-logs-error {
+    color: #dc3232;
+}
+
+.BCM-no-logs,
+.BCM-error {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.BCM-error {
+    color: #dc3232;
+}
+
+.BCM-logs-footer {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+}
+
+.BCM-test-update-container {
+    display: inline-block;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+    .BCM-logs-header {
+        flex-direction: column;
+    }
+    
+    .BCM-logs-header select,
+    .BCM-logs-header button {
+        width: 100%;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .BCM-logs-header {
+        border-color: #1d2327;
+    }
+
+    .BCM-log-entry {
+        border-color: #1d2327;
+    }
+
+    .BCM-log-entry.debug { color: #bbb; }
+    .BCM-log-entry.info { color: #00b9eb; }
+    .BCM-log-entry.warning { color: #ffc733; }
+    .BCM-log-entry.error { color: #f55; }
+
+    .BCM-no-logs,
+    .BCM-logs-loading {
+        color: #bbb;
+    }
+}

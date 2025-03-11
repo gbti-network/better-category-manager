@@ -1,0 +1,26 @@
+{
+  "name": "better-category-manager-tools",
+  "version": "1.0.0",
+  "description": "Development tools forBetter Category Manager Lite WordPress plugin",
+  "main": "translate.js",
+  "scripts": {
+    "translate": "node translate.js",
+    "deploy": "node deploy.js",
+    "build": "node build.js",
+    "release": "node release.js",
+    "commit": "node commit.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^19.0.13",
+    "archiver": "^5.3.2",
+    "dotenv": "^16.4.7",
+    "fs-extra": "^11.3.0",
+    "glob": "^8.0.0",
+    "inquirer": "^8.2.6",
+    "openai": "^4.0.0",
+    "semver": "^7.5.4"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

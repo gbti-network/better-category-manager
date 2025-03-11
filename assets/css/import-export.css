@@ -1,0 +1,51 @@
+.BCM-import-export-controls {
+    display: inline-flex;
+    gap: 8px;
+    float: right;
+    margin: 0;
+    padding: 0;
+}
+
+.wrap h1.wp-heading-inline {
+    display: inline-block;
+    margin-right: 15px;
+    margin-bottom: 15px;
+}
+
+.BCM-import-export-controls .page-title-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 4px 8px;
+    position: relative;
+    top: -3px;
+}
+
+.BCM-import-export-controls .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+}
+
+.BCM-import-wrapper {
+    display: inline-block;
+}
+
+#BCM-import-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Ensure proper spacing after the header section */
+.wp-header-end {
+    clear: both;
+    margin-bottom: 20px;
+}
