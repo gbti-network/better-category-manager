@@ -28,19 +28,19 @@ const BCMSettings = {
         // Handle Issue Button
         $('.bcm-raise-issue').on('click', function(e) {
             e.preventDefault();
-            window.open('https://github.com/better-wp-plugins/better-category-manager/issues/new', '_blank');
+            window.open('https://github.com/gbti-network/better-category-manager/issues', '_blank');
         });
 
         // Handle Customization Button
         $('.bcm-request-customization').on('click', function(e) {
             e.preventDefault();
-            window.open('https://github.com/better-wp-plugins/better-category-manager/discussions/new?category=feature-requests', '_blank');
+            window.open('https://github.com/gbti-network/better-category-manager/issues/new/choose', '_blank');
         });
 
         // Handle Sponsor Button
         $('.bcm-become-sponsor').on('click', function(e) {
             e.preventDefault();
-            window.open('https://github.com/sponsors/better-wp-plugins', '_blank');
+            window.open('https://gbti.network/membership', '_blank');
         });
     },
 

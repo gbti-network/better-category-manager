@@ -353,6 +353,101 @@ class Ajax_Handler {
     }
 
     /**
+     * Handle generating description with OpenAI
+     */
+    public function handle_generate_description() {
+        // Verify nonce
+        $this->verify_nonce();
+
+        // Get data from request
+        $term_name = isset($_POST['term_name']) ? sanitize_text_field(wp_unslash($_POST['term_name'])) : '';
+        $prompt = isset($_POST['prompt']) ? sanitize_textarea_field(wp_unslash($_POST['prompt'])) : '';
+        
+        if (empty($term_name) || empty($prompt)) {
+            wp_send_json_error(['message' => esc_html__('Missing required parameters.', 'better-category-manager')]);
+        }
+        
+        // Replace [TERM_NAME] placeholder with actual term name
+        $prompt = str_replace('[TERM_NAME]', $term_name, $prompt);
+        
+        // Get API key from settings
+        $settings = get_option('BCM_settings', []);
+        $api_key = isset($settings['openai_api_key']) ? $settings['openai_api_key'] : '';
+        
+        if (empty($api_key)) {
+            wp_send_json_error(['message' => esc_html__('OpenAI API key is not configured.', 'better-category-manager')]);
+        }
+        
+        // Make API request to OpenAI
+        $response = $this->generate_with_openai($prompt, $api_key);
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+        
+        wp_send_json_success(['description' => $response]);
+    }
+    
+    /**
+     * Generate description using OpenAI API
+     */
+    private function generate_with_openai($prompt, $api_key) {
+        $url = 'https://api.openai.com/v1/chat/completions';
+        
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $api_key
+        ];
+        
+        $body = [
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a helpful assistant that generates concise, informative descriptions for category terms.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 250
+        ];
+        
+        $args = [
+            'headers' => $headers,
+            'body' => json_encode($body),
+            'timeout' => 30,
+            'redirection' => 5,
+            'httpversion' => '1.1',
+            'blocking' => true,
+            'data_format' => 'body'
+        ];
+        
+        $response = wp_remote_post($url, $args);
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code !== 200) {
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            $error_message = isset($body['error']['message']) ? $body['error']['message'] : esc_html__('Unknown error occurred.', 'better-category-manager');
+            return new \WP_Error('openai_error', $error_message);
+        }
+        
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if (!isset($body['choices'][0]['message']['content'])) {
+            return new \WP_Error('openai_error', esc_html__('Invalid response from OpenAI.', 'better-category-manager'));
+        }
+        
+        return $body['choices'][0]['message']['content'];
+    }
+
+    /**
      * Handle getting parent terms
      */
     public function handle_get_parent_terms() {

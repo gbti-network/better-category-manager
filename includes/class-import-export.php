@@ -26,39 +26,39 @@ class Import_Export {
     }
 
     /**
-     * Handle category export
+     * Handle taxonomy export
      */
     public function handle_export() {
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'better-category-manager'));
+            wp_send_json_error(esc_html__('Insufficient permissions', 'better-category-manager'));
         }
 
         check_ajax_referer('BCM_nonce', 'nonce');
 
-        // Get the current category from the request
-        $category_name = isset($_POST['category']) ? sanitize_text_field(wp_unslash($_POST['category'])) : 'category';
+        // Get the current taxonomy from the request
+        $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field(wp_unslash($_POST['taxonomy'])) : 'category';
         
-        // Get the category object
-        $category = get_category($category_name);
-        if (!$category) {
-            wp_send_json_error(__('Invalid category', 'better-category-manager'));
+        // Get the taxonomy object
+        $taxonomy_obj = get_taxonomy($taxonomy);
+        if (!$taxonomy_obj) {
+            wp_send_json_error(esc_html__('Invalid taxonomy', 'better-category-manager'));
         }
 
-        // Get all terms for this category
-        $terms = $this->get_category_terms($category_name);
+        // Get all terms for this taxonomy
+        $terms = $this->get_taxonomy_terms($taxonomy);
 
         $export_data = [
-            $category_name => [
-                'labels' => (array) $category->labels,
-                'description' => $category->description,
-                'public' => $category->public,
-                'hierarchical' => $category->hierarchical,
-                'show_ui' => $category->show_ui,
-                'show_in_menu' => $category->show_in_menu,
-                'show_in_nav_menus' => $category->show_in_nav_menus,
-                'show_tagcloud' => $category->show_tagcloud,
-                'show_in_quick_edit' => $category->show_in_quick_edit,
-                'show_admin_column' => $category->show_admin_column,
+            $taxonomy => [
+                'labels' => (array) $taxonomy_obj->labels,
+                'description' => $taxonomy_obj->description,
+                'public' => $taxonomy_obj->public,
+                'hierarchical' => $taxonomy_obj->hierarchical,
+                'show_ui' => $taxonomy_obj->show_ui,
+                'show_in_menu' => $taxonomy_obj->show_in_menu,
+                'show_in_nav_menus' => $taxonomy_obj->show_in_nav_menus,
+                'show_tagcloud' => $taxonomy_obj->show_tagcloud,
+                'show_in_quick_edit' => $taxonomy_obj->show_in_quick_edit,
+                'show_admin_column' => $taxonomy_obj->show_admin_column,
                 'terms' => $terms,
             ]
         ];
@@ -66,19 +66,19 @@ class Import_Export {
         wp_send_json_success([
             'data' => $export_data,
             'filename' => sprintf(
-                /* translators: %1$s: Category name, %2$s: Date */
-                __('Category "%1$s" export-%2$s.json', 'better-category-manager'), 
-                $category_name, 
+                /* translators: %1$s: Taxonomy name, %2$s: Date */
+                esc_html__('%1$s export-%2$s.json', 'better-category-manager'), 
+                $taxonomy, 
                 gmdate('Y-m-d')
             )
         ]);
     }
 
-    private function get_category_terms($category) {
+    private function get_taxonomy_terms($taxonomy) {
         $terms = get_terms([
-            'category' => $category,
+            'taxonomy' => $taxonomy,
             'hide_empty' => false,
-            'orderby' => 'parent',
+            'orderby' => 'name',
             'order' => 'ASC'
         ]);
 
@@ -121,11 +121,11 @@ class Import_Export {
     }
 
     /**
-     * Handle category import
+     * Handle taxonomy import
      */
     public function handle_import() {
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(__('Insufficient permissions', 'better-category-manager'));
+            wp_send_json_error(esc_html__('Insufficient permissions', 'better-category-manager'));
         }
 
         check_ajax_referer('BCM_nonce', 'nonce');
@@ -134,7 +134,7 @@ class Import_Export {
             wp_send_json_error(esc_html__('No file uploaded', 'better-category-manager'));
         }
 
-        // Verify the file exists but keep original file path handling
+        // Verify the file exists
         if (!is_uploaded_file($_FILES['import_file']['tmp_name'])) {
             wp_send_json_error(esc_html__('Invalid file upload', 'better-category-manager'));
         }
@@ -143,7 +143,7 @@ class Import_Export {
         $import_data = json_decode($file_content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(__('Invalid JSON file', 'better-category-manager'));
+            wp_send_json_error(esc_html__('Invalid JSON file', 'better-category-manager'));
         }
 
         $results = [
@@ -154,27 +154,27 @@ class Import_Export {
             'warnings' => []
         ];
 
-        foreach ($import_data as $category_name => $category_data) {
-            // Skip if category doesn't exist
-            if (!category_exists($category_name)) {
+        foreach ($import_data as $taxonomy_name => $taxonomy_data) {
+            // Skip if taxonomy doesn't exist
+            if (!taxonomy_exists($taxonomy_name)) {
                 $results['errors'][] = sprintf(
-                    /* translators: %1$s: Category name */
-                    __('Category "%1$s" does not exist. Skipping.', 'better-category-manager'), 
-                    $category_name
+                    /* translators: %1$s: Taxonomy name */
+                    esc_html__('Taxonomy "%1$s" does not exist. Skipping.', 'better-category-manager'), 
+                    $taxonomy_name
                 );
                 continue;
             }
 
             // Import terms
-            if (isset($category_data['terms'])) {
-                $results = array_merge($results, $this->import_terms($category_data['terms'], $category_name));
+            if (isset($taxonomy_data['terms']) && is_array($taxonomy_data['terms'])) {
+                $results = array_merge($results, $this->import_terms($taxonomy_data['terms'], $taxonomy_name));
             }
         }
 
         wp_send_json_success([
             'message' => sprintf(
                 /* translators: %1$d: Created count, %2$d: Updated count, %3$d: Skipped count, %4$d: Errors count, %5$d: Warnings count */
-                __('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d, Warnings: %5$d', 'better-category-manager'),
+                esc_html__('Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d, Warnings: %5$d', 'better-category-manager'),
                 $results['created'],
                 $results['updated'],
                 $results['skipped'],
@@ -386,7 +386,7 @@ class Import_Export {
         ];
     }
 
-    private function import_terms($terms, $category) {
+    private function import_terms($terms, $taxonomy) {
         $results = [
             'created' => 0,
             'updated' => 0,
@@ -451,7 +451,7 @@ class Import_Export {
             }
             $existing_slugs[] = $import_data['slug'];
 
-            $result = $this->create_or_update_term($import_data, $category);
+            $result = $this->create_or_update_term($import_data, $taxonomy);
             
             if ($result['status'] === 'created' || $result['status'] === 'updated') {
                 $slug_to_id_map[$term_data['slug']] = $result['term_id'];
@@ -479,7 +479,7 @@ class Import_Export {
                 $parent_term_id = $slug_to_id_map[$term_data['parent_slug']] ?? null;
                 
                 if ($current_term_id && $parent_term_id) {
-                    wp_update_term($current_term_id, $category, [
+                    wp_update_term($current_term_id, $taxonomy, [
                         'parent' => $parent_term_id
                     ]);
                 } else {
@@ -502,7 +502,7 @@ class Import_Export {
     /**
      * Create or update a term
      */
-    private function create_or_update_term($term_data, $category) {
+    private function create_or_update_term($term_data, $taxonomy) {
         $result = [
             'term_id' => 0,
             'status' => 'skipped',
@@ -510,11 +510,11 @@ class Import_Export {
         ];
 
         // Check if term exists by slug
-        $existing_term = get_term_by('slug', $term_data['slug'], $category);
+        $existing_term = get_term_by('slug', $term_data['slug'], $taxonomy);
         
         // Also check by name if not found by slug
         if (!$existing_term) {
-            $existing_term = get_term_by('name', $term_data['name'], $category);
+            $existing_term = get_term_by('name', $term_data['name'], $taxonomy);
         }
 
         if ($existing_term) {
@@ -525,7 +525,7 @@ class Import_Export {
                 'description' => $term_data['description'],
             ];
             
-            $updated_term = wp_update_term($existing_term->term_id, $category, $update_args);
+            $updated_term = wp_update_term($existing_term->term_id, $taxonomy, $update_args);
             
             if (is_wp_error($updated_term)) {
                 $result['status'] = 'error';
@@ -545,14 +545,18 @@ class Import_Export {
             // Create new term
             $insert_args = [
                 'slug' => $term_data['slug'],
-                'description' => $term_data['description'],
+                'description' => isset($term_data['description']) ? $term_data['description'] : '',
             ];
 
-            $new_term = wp_insert_term($term_data['name'], $category, $insert_args);
+            // Add debugging
+            error_log('BCM Import: Creating new term: ' . $term_data['name'] . ' in taxonomy: ' . $taxonomy);
+            
+            $new_term = wp_insert_term($term_data['name'], $taxonomy, $insert_args);
             
             if (is_wp_error($new_term)) {
                 $result['status'] = 'error';
                 $result['error'] = $new_term->get_error_message();
+                error_log('BCM Import Error: ' . $new_term->get_error_message());
             } else {
                 $result['status'] = 'created';
                 $result['term_id'] = $new_term['term_id'];
@@ -567,25 +571,5 @@ class Import_Export {
         }
 
         return $result;
-    }
-
-    /**
-     * Update import results
-     */
-    private function update_results(&$results, $result) {
-        switch ($result['status']) {
-            case 'created':
-                $results['created']++;
-                break;
-            case 'updated':
-                $results['updated']++;
-                break;
-            case 'skipped':
-                $results['skipped']++;
-                break;
-            case 'error':
-                $results['errors'][] = $result['error'];
-                break;
-        }
     }
 }

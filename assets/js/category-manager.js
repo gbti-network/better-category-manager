@@ -4,46 +4,78 @@
 (function($) {
     'use strict';
 
-    // Bind auth and sponsor events immediately
-    $(document).on('BCM:auth-required BCM:sponsor-invalid', function() {
-        BCM.debug.log('Auth/Sponsor validation required, showing notification');
-        
-        // Create and show the admin notice
-        const notice = $('<div class="notice notice-warning is-dismissible"><p>' + 
-            'Updates for <b>Better Category Manager</b> are currently disabled. <br> Please <a href="' + gbtiAdmin.adminUrl + 'admin.php?page=BCM-settings">visit the settings page</a> ' +
-            'to connect to the GBTI Network.' +
-            '</p></div>');
-            
-        // Insert the notice at the top of the wrap
-        $('.wrap').first().prepend(notice);
-        
-        // Initialize WordPress dismissible notices
-        if (typeof wp !== 'undefined' && wp.notices) {
-            wp.notices.makeDismissible(notice);
-        }
-
-        setTimeout(() => {
-            window.gbtiCategoryEditor.hideLoadingScreen();
-        }, 500);
-    });
-
-    $(document).on('BCM:sponsor-valid', function() {
-        BCM.debug.group('Handling sponsor validation');
-        
-        if (window.gbtiCategoryEditor.state.contentLoaded) {
-            window.gbtiCategoryEditor.hideLoadingScreen();
-        } else {
-            window.gbtiCategoryEditor.loadTerms();
-        }
-        
-        BCM.debug.groupEnd();
-    });
-
+    /**
+     * BCM Category Editor Class
+     */
     class CategoryEditor {
+        /**
+         * Constructor
+         */
         constructor() {
+            // Set up safe storage handling
+            this.setupSafeStorage();
+            
+            // Initialize templates first to catch errors early
+            try {
+                this.templates = {
+                    termRow: wp.template('BCM-term-row'),
+                    termForm: wp.template('BCM-term-form')
+                };
+            } catch (error) {
+                console.error('Error initializing templates:', error);
+                this.templates = {
+                    termRow: null,
+                    termForm: null
+                };
+            }
+            
             this.initializeElements();
             this.initializeState();
-            this.setupLoadingScreen(); 
+        }
+
+        /**
+         * Set up safe storage handling to prevent errors
+         */
+        setupSafeStorage() {
+            this.storage = {
+                get: (key, defaultValue = null) => {
+                    try {
+                        if (window.localStorage) {
+                            const item = window.localStorage.getItem(key);
+                            if (item !== null) {
+                                return JSON.parse(item);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Storage access error', e);
+                        // Continue execution even if localStorage fails
+                    }
+                    return defaultValue;
+                },
+                set: (key, value) => {
+                    try {
+                        if (window.localStorage) {
+                            window.localStorage.setItem(key, JSON.stringify(value));
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Storage access error', e);
+                        // Fail silently, application can continue without storage
+                    }
+                    return false;
+                },
+                remove: (key) => {
+                    try {
+                        if (window.localStorage) {
+                            window.localStorage.removeItem(key);
+                            return true;
+                        }
+                    } catch (e) {
+                        console.warn('Storage access error', e);
+                    }
+                    return false;
+                }
+            };
         }
 
         /**
@@ -51,31 +83,26 @@
          */
         initializeElements() {
             this.elements = {
-                wrap: $('.wrap'),
                 categorySelect: $('#category-select'),
                 termSearch: $('#term-search'),
+                addNewBtn: $('#add-new-term'),
                 termsTree: $('#category-terms-tree'),
                 termEditor: $('.BCM-term-editor'),
-                addNewBtn: $('#add-new-term'),
-                loadingOverlay: $('.BCM-loading-overlay'),
-                editorContent: $('.BCM-term-editor-content'),
                 closeEditorBtn: $('.BCM-close-editor'),
-                loadingScreen: null,
+                editorContent: $('.BCM-term-editor-content'),
                 container: $('.BCM-terms-tree'),
-                notificationContainer: $('#BCM-notification-container')
+                notificationContainer: $('#BCM-notification-container'),
+                loadingOverlay: $('.BCM-loading-overlay'),
+                collapseAllBtn: $('.BCM-collapse-all'),
+                expandAllBtn: $('.BCM-expand-all')
             };
-
-            // Create notification container if it doesn't exist
-            if (!this.elements.notificationContainer.length) {
-                console.log('Creating notification container during initialization');
-                $('.wrap').prepend('<div id="BCM-notification-container" class="BCM-notification-container"></div>');
-                this.elements.notificationContainer = $('#BCM-notification-container');
+            
+            // Create loading overlay if it doesn't exist
+            if (!this.elements.loadingOverlay || !this.elements.loadingOverlay.length) {
+                console.warn('Loading overlay not found, creating one');
+                this.elements.container.append('<div class="BCM-loading-overlay"><span class="spinner is-active"></span></div>');
+                this.elements.loadingOverlay = $('.BCM-loading-overlay');
             }
-
-            this.templates = {
-                termRow: wp.template('BCM-term-row'),
-                termForm: wp.template('BCM-term-form')
-            };
         }
 
         /**
@@ -85,13 +112,13 @@
             this.state = {
                 currentCategory: this.elements.categorySelect.val(),
                 currentTermId: null,
-                isLoading: false,
                 expandedTerms: new Set(),
                 isDragging: false,
                 hasUnsavedChanges: false,
                 contentLoaded: false, // Track if content has been loaded
                 initialLoadComplete: false, // Track if initial load is complete
-                isHierarchical: false // Track if the current category is hierarchical
+                isHierarchical: true, // Track if the current category is hierarchical
+                isLoading: false
             };
         }
 
@@ -99,13 +126,18 @@
          * Initialize the editor
          */
         init() {
-            if (!this.templates.termRow || !this.templates.termForm) {
-                console.error('Required templates are missing');
+            // Validate dependencies
+            if (typeof BCMAdmin === 'undefined') {
+                console.error('BCMAdmin is not defined. Cannot initialize editor.');
+                this.showError('Error initializing editor. Please refresh the page and try again.');
                 return;
             }
-
-            // Initialize state properties
-            this.state.isHierarchical = false;
+            
+            if (!this.templates.termRow || !this.templates.termForm) {
+                console.error('Required templates are missing');
+                this.showError('Required templates are missing. Please refresh the page and try again.');
+                return;
+            }
             
             this.bindEvents();
             this.loadTerms();
@@ -146,7 +178,7 @@
                 // Close editor
                 this.elements.closeEditorBtn.on('click', () => {
                     if (this.state.hasUnsavedChanges) {
-                        if (confirm(gbtiAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
+                        if (confirm(BCMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
                             this.state.hasUnsavedChanges = false;
                             this.hideTermEditor();
                         }
@@ -163,7 +195,7 @@
 
                 $(document).on('click', '.BCM-delete-term', (e) => {
                     e.preventDefault();
-                    if (confirm(gbtiAdmin.i18n.confirm_delete)) {
+                    if (confirm(BCMAdmin.i18n.confirm_delete)) {
                         this.deleteTerm();
                     }
                 });
@@ -180,102 +212,16 @@
                 });
 
                 // Expand/Collapse All buttons
-                $('.BCM-collapse-all').on('click', () => {
+                this.elements.collapseAllBtn.on('click', () => {
                     this.collapseAllFirstLevel();
                 });
 
-                $('.BCM-expand-all').on('click', () => {
+                this.elements.expandAllBtn.on('click', () => {
                     this.expandAllFirstLevel();
                 });
             } catch (error) {
                 console.error('Error binding events:', error);
             }
-        }
-
-        /**
-         * Setup loading screen
-         */
-        setupLoadingScreen() {
-            BCM.debug.group('Setting up loading screen');
-            
-            // Create and insert loading screen
-            const loadingScreen = `
-                <div id="BCM-loading-screen" style="
-                    position: fixed;
-                    top: 0;
-                    left: 160px;
-                    width: calc(100% - 160px);
-                    height: 100%;
-                    background: #fff;
-                    z-index: 100000;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    transition: opacity 0.3s ease-out;">
-                    <div class="BCM-loader"></div>
-                </div>
-            `;
-            
-            // Add loading screen to body and store reference
-            $('body').append(loadingScreen);
-            this.elements.loadingScreen = $('#BCM-loading-screen');
-            
-            BCM.debug.log('Loading screen added to DOM');
-            BCM.debug.groupEnd();
-        }
-
-        /**
-         * Handle successful sponsor validation
-         */
-        onSponsorValidated() {
-            BCM.debug.group('Handling sponsor validation');
-            
-            if (this.state.contentLoaded) {
-                this.hideLoadingScreen();
-            } else {
-                this.loadTerms();
-            }
-            
-            BCM.debug.groupEnd();
-        }
-
-        /**
-         * Hide loading screen
-         */
-        hideLoadingScreen() {
-            BCM.debug.group('Hiding loading screen');
-            
-            if (!this.elements.loadingScreen) {
-                BCM.debug.warn('Loading screen element not found');
-                return;
-            }
-
-            this.state.isLoading = false;
-            this.elements.loadingScreen.css('opacity', '0');
-            
-            setTimeout(() => {
-                this.elements.loadingScreen.hide();
-                BCM.debug.log('Loading screen hidden');
-                BCM.debug.groupEnd();
-            }, 300);
-        }
-
-        /**
-         * Show loading screen
-         */
-        showLoadingScreen() {
-            BCM.debug.group('Showing loading screen');
-            
-            if (!this.elements.loadingScreen) {
-                BCM.debug.warn('Loading screen not found, setting up new one');
-                this.setupLoadingScreen();
-            }
-            
-            this.state.isLoading = true;
-            this.elements.loadingScreen.show().css('opacity', '1');
-            
-            BCM.debug.log('Loading screen shown');
-            BCM.debug.groupEnd();
         }
 
         /**
@@ -288,16 +234,18 @@
                 return;
             }
             
+            // Show loading overlay
+            this.setLoading(true);
+            
             BCM.debug.group('Loading terms for category: ' + category);
-            this.showLoadingScreen();
             
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
                     action: 'BCM_get_terms',
-                    nonce: gbtiAdmin.nonce,
+                    nonce: BCMAdmin.nonce,
                     category: category
                 },
                 success: (response) => {
@@ -318,13 +266,11 @@
                         this.renderTerms(response.data.terms);
                         this.state.contentLoaded = true;
                         this.state.initialLoadComplete = true;
-                        this.hideLoadingScreen();
                     } else {
                         console.error('Error loading terms', response.data);
                         if (!suppressNotification) {
                             this.showError(response.data.message || 'Error loading terms');
                         }
-                        this.hideLoadingScreen(); // Always hide on error
                     }
                 },
                 error: () => {
@@ -332,12 +278,13 @@
                     if (!suppressNotification) {
                         this.showError('Failed to load terms. Please try again.');
                     }
-                    this.hideLoadingScreen(); // Always hide on error
+                },
+                complete: () => {
+                    // Hide loading overlay
+                    this.setLoading(false);
+                    BCM.debug.groupEnd();
                 }
-                // Initial load will be hidden by BCM:sponsor-valid event
             });
-            
-            BCM.debug.groupEnd();
         }
 
         /**
@@ -367,7 +314,7 @@
 
             if (!terms || !terms.length) {
                 this.elements.termsTree.html(
-                    `<p class="BCM-no-terms">${gbtiAdmin.i18n.no_terms}</p>`
+                    `<p class="BCM-no-terms">${BCMAdmin.i18n.no_terms}</p>`
                 );
                 return;
             }
@@ -408,7 +355,7 @@
             
             // Only initialize drag and drop if category is hierarchical
             if (this.state.isHierarchical) {
-                this.initializeDragAndDrop();
+                this.initDragAndDrop();
             } else {
                 BCM.debug.log('Skipping drag and drop for non-hierarchical category');
                 // Disable drag handles for non-hierarchical taxonomies
@@ -421,186 +368,28 @@
         /**
          * Initialize drag and drop functionality
          */
-        initializeDragAndDrop() {
-            // Skip if category is not hierarchical
-            if (!this.state.isHierarchical) {
-                BCM.debug.log('Skipping drag and drop initialization for non-hierarchical category');
-                return;
-            }
-            
-            BCM.debug.log('Initializing drag and drop');
-            
-            $('.BCM-terms-tree .BCM-term-list').sortable({
-                handle: '.BCM-term-handle',
-                items: '> li',
-                placeholder: 'BCM-term-placeholder',
-                tolerance: 'pointer',
-                cursor: 'move',
-                connectWith: '.BCM-term-list',
-                delay: 150,
-                helper: 'clone',
-                grid: [20, 1],
-
-                start: (e, ui) => {
-                    console.log('Drag Start');
-                    const $item = ui.item;
-                    const $itemRow = $item.find('.BCM-term-row');
-                    const itemOffset = $itemRow.offset();
-
-                    this.state.isDragging = true;
-                    this.state.mouseTracking = {
-                        startX: e.pageX,
-                        currentX: e.pageX,
-                        startOffset: itemOffset
-                    };
-                    this.state.currentItemId = $itemRow.data('id');
-
-                    ui.placeholder.height(ui.item.height());
-                    $itemRow.addClass('is-dragging');
-                },
-
-                sort: (e, ui) => {
-                    const $placeholder = ui.placeholder;
-                    const dragDistance = e.pageX - this.state.mouseTracking.startX;
-                    const mouseY = e.pageY;
-                    const draggedItemId = ui.item.find('.BCM-term-row').data('id');
-
-                    // Clear previous visual indicators
-                    $('.BCM-term-row').removeClass('potential-parent hover-target');
-                    $('.temp-drop-container').removeClass('active');
-                    $('.nesting-helper').remove();
-
-                    // Find potential parent based on mouse position
-                    const $potentialParents = $('.BCM-term-row').filter(function() {
-                        const $this = $(this);
-                        const thisOffset = $this.offset();
-                        const isAboveMouse = thisOffset.top < mouseY;
-                        const isWithinHorizontalRange = Math.abs(thisOffset.left - $placeholder.offset().left) < 50;
-                        const isNotDraggedItem = $this.data('id') !== draggedItemId;
-                        const isNotChild = !$this.closest('li').find(`[data-id="${draggedItemId}"]`).length;
-
-                        return isAboveMouse && isWithinHorizontalRange && isNotDraggedItem && isNotChild;
-                    });
-
-                    let closestParent = null;
-                    let closestDistance = Infinity;
-
-                    $potentialParents.each(function() {
-                        const $this = $(this);
-                        const thisOffset = $this.offset();
-                        const distance = Math.sqrt(
-                            Math.pow(mouseY - thisOffset.top, 2) +
-                            Math.pow(e.pageX - thisOffset.left, 2)
-                        );
-
-                        if (distance < closestDistance) {
-                            closestDistance = distance;
-                            closestParent = $this;
-                        }
-                    });
-
-                    // Apply nesting visual indicators if dragging right
-                    if (closestParent && dragDistance > 100) {
-                        const potentialParentId = closestParent.data('id');
-
-                        // Store the potential parent for use in stop handler
-                        this.state.potentialParentId = potentialParentId;
-
-                        // Apply visual indicators
-                        closestParent.addClass('potential-parent hover-target');
-                        $placeholder.addClass('is-child-indent').css('margin-left', '20px');
-
-                        // Add or update drop container
-                        let $dropContainer = closestParent.next('.BCM-term-list');
-                        if (!$dropContainer.length) {
-                            $dropContainer = $('<ul class="BCM-term-list temp-drop-container"></ul>');
-                            closestParent.after($dropContainer);
-                        }
-                        $dropContainer.addClass('active');
-
-                        // Add helper text
-                        if (!closestParent.find('.nesting-helper').length) {
-                            closestParent.append(
-                                '<span class="nesting-helper">Release to nest under ' +
-                                closestParent.find('.BCM-term-name').text() + '</span>'
-                            );
-                        }
-                    } else {
-                        // Reset nesting state when not dragging right
-                        this.state.potentialParentId = null;
-                        $placeholder.removeClass('is-child-indent').css('margin-left', '');
+        initDragAndDrop() {
+            try {
+                if (!this.elements.termsTree || !this.elements.termsTree.length) {
+                    console.warn('Terms tree element not found, cannot initialize drag and drop');
+                    return;
+                }
+                
+                const self = this;
+                
+                this.elements.termsTree.sortable({
+                    items: '> li',
+                    placeholder: 'BCM-sortable-placeholder',
+                    handle: '.BCM-term-handle',
+                    update: function(event, ui) {
+                        self.updateTermOrder();
                     }
-                },
-
-                stop: (e, ui) => {
-                    const $item = ui.item;
-                    const dragDistance = e.pageX - this.state.mouseTracking.startX;
-                    let newParentId = 0;
-
-                    // Use the stored potential parent if we were dragging right
-                    if (this.state.potentialParentId && dragDistance > 100) {
-                        newParentId = this.state.potentialParentId;
-                        const $parent = $(`.BCM-term-row[data-id="${newParentId}"]`);
-
-                        // Create or get child list
-                        let $childList = $parent.next('.BCM-term-list:not(.temp-drop-container)');
-                        if (!$childList.length) {
-                            $childList = $('<ul class="BCM-term-list"></ul>');
-                            $parent.after($childList);
-                        }
-
-                        // Move item to child list
-                        $item.appendTo($childList);
-
-                        // Update toggle button
-                        this.updateToggleButton($parent);
-                    } else {
-                        // If not nesting, parent is determined by the containing list
-                        const $parentRow = $item.parent('.BCM-term-list').prev('.BCM-term-row');
-                        newParentId = $parentRow.length ? $parentRow.data('id') : 0;
-                    }
-
-                    // Cleanup
-                    $('.BCM-term-row').removeClass('potential-parent hover-target is-dragging');
-                    $('.temp-drop-container').remove();
-                    $('.nesting-helper').remove();
-
-                    // Update hierarchy
-                    this.updateTermHierarchy($item, newParentId);
-
-                    // Reset state
-                    this.state.mouseTracking = { startX: 0, currentX: 0 };
-                    this.state.potentialParentId = null;
-                }
-            }).disableSelection();
-        }
-
-        /**
-         * Helper method to update toggle button
-         */
-        updateToggleButton($parent) {
-            const $existing = $parent.find('.BCM-toggle-children');
-            const hasChildren = $parent.next('.BCM-term-list').children().length > 0;
-
-            if (!hasChildren) {
-                // If no children, remove the toggle button and replace with placeholder
-                if ($existing.length) {
-                    $existing.replaceWith('<span class="BCM-toggle-placeholder"></span>');
-                }
-            } else {
-                // If has children, ensure toggle button exists and is in correct state
-                if (!$existing.length) {
-                    $parent.find('.BCM-toggle-placeholder').replaceWith(`
-                <button type="button" class="BCM-toggle-children expanded" title="Toggle children visibility">
-                    <span class="dashicons dashicons-arrow-down"></span>
-                </button>
-            `);
-                } else {
-                    $existing.addClass('expanded')
-                        .find('.dashicons')
-                        .addClass('dashicons-arrow-down')
-                        .removeClass('dashicons-arrow-right');
-                }
+                });
+                
+                // Log success message
+                console.log('Drag and drop initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize drag and drop:', error);
             }
         }
 
@@ -621,14 +410,14 @@
             this.setLoading(true);
 
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 method: 'POST',
                 data: {
                     action: 'BCM_update_term_hierarchy',
                     term_id: $item.find('.BCM-term-row').data('id'),
                     parent_id: newParentId,
                     category: this.state.currentCategory,
-                    nonce: gbtiAdmin.nonce
+                    nonce: BCMAdmin.nonce
                 },
                 success: (response) => {
                     console.log('Ajax response:', response);
@@ -644,7 +433,7 @@
                         } else {
                             // Use default message if none provided in response
                             this.forceDisplayNotification(
-                                gbtiAdmin.i18n.term_updated || 'Term updated successfully.', 
+                                BCMAdmin.i18n.term_updated || 'Term updated successfully.', 
                                 'success'
                             );
                         }
@@ -655,7 +444,7 @@
                 },
                 error: (xhr, status, error) => {
                     console.error('Ajax error:', {xhr, status, error});
-                    this.showError(gbtiAdmin.i18n.hierarchy_update_error);
+                    this.showError(BCMAdmin.i18n.hierarchy_update_error);
                     this.loadTerms();
                 },
                 complete: () => {
@@ -733,7 +522,7 @@
          */
         loadTermData(termId) {
             if (this.state.hasUnsavedChanges &&
-                !confirm(gbtiAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
+                !confirm(BCMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
                 return;
             }
 
@@ -741,40 +530,63 @@
             this.state.currentTermId = termId;
 
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 method: 'POST',
                 data: {
                     action: 'BCM_get_term_data',
                     term_id: termId,
                     category: this.state.currentCategory,
-                    nonce: gbtiAdmin.nonce
+                    nonce: BCMAdmin.nonce
                 },
                 success: (response) => {
-                    if (response.success) {
+                    if (response.success && response.data) {
                         // Log the response to verify data
                         console.log('Term data received:', response.data);
-                        const settings = window.gbtiAdmin?.settings || {};
+                        
+                        // Check if we have a direct term data object
+                        const termData = response.data.term || response.data;
+                        
+                        // Safely check for required properties
+                        if (!termData || typeof termData !== 'object') {
+                            console.error('Term data is missing or invalid in the response', response);
+                            this.showError('Invalid term data received. Please try again.');
+                            return;
+                        }
+                        
+                        // Get category info - may be in different locations depending on response structure
+                        const categoryInfo = response.data.category || {};
+                        const showParent = categoryInfo.hierarchical !== undefined ? 
+                            !!categoryInfo.hierarchical : this.state.isHierarchical;
+                        
+                        // Get the default prompt - prioritize the dedicated default_ai_prompt property
+                        const defaultPrompt = window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
+                            window.BCMAdmin.default_ai_prompt : '';
+                        
                         // Format the data for the form template
                         const formData = {
-                            id: response.data.term.id,
-                            name: response.data.term.name,
-                            slug: response.data.term.slug,
-                            description: response.data.term.description,
-                            category: response.data.term.category,
-                            parent: response.data.term.parent,
-                            showParent: response.data.category.hierarchical,
-                            parentDropdown: response.data.parent_terms,
-                            canDelete: true ,
-                            default_prompt: settings.default_prompt || ''
+                            id: termData.id || 0,
+                            name: termData.name || '',
+                            slug: termData.slug || '',
+                            description: termData.description || '',
+                            category: termData.category || termData.taxonomy || this.state.currentCategory,
+                            parent: termData.parent || 0,
+                            showParent: showParent,
+                            parentDropdown: response.data.parent_terms || '',
+                            canDelete: true,
+                            default_prompt: defaultPrompt
                         };
 
                         this.showTermForm(formData);
                     } else {
-                        this.showError(response.data.message);
+                        const errorMsg = response.data && response.data.message ? 
+                            response.data.message : 
+                            'Failed to load term data. Please try again.';
+                        this.showError(errorMsg);
                     }
                 },
-                error: () => {
-                    this.showError(gbtiAdmin.i18n.error_loading || 'Failed to load term data');
+                error: (xhr, status, error) => {
+                    console.error('Ajax error:', {xhr, status, error});
+                    this.showError(BCMAdmin.i18n.error_loading || 'Failed to load term data');
                 },
                 complete: () => {
                     this.setLoading(false);
@@ -789,12 +601,12 @@
             console.log('Saving term...');
             const formData = new FormData($('#BCM-term-edit-form')[0]);
             formData.append('action', 'BCM_save_term');
-            formData.append('nonce', gbtiAdmin.nonce);
+            formData.append('nonce', BCMAdmin.nonce);
 
             this.setLoading(true);
 
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 method: 'POST',
                 data: formData,
                 processData: false,
@@ -814,7 +626,7 @@
                         } else {
                             // Use default message if none provided in response
                             this.forceDisplayNotification(
-                                gbtiAdmin.i18n.term_updated || 'Term updated successfully.', 
+                                BCMAdmin.i18n.term_updated || 'Term updated successfully.', 
                                 'success'
                             );
                         }
@@ -831,7 +643,7 @@
                 error: (xhr, status, error) => {
                     console.error('Save term error:', error);
                     this.forceDisplayNotification(
-                        gbtiAdmin.i18n.save_error || 'Failed to save the term.', 
+                        BCMAdmin.i18n.save_error || 'Failed to save the term.', 
                         'error'
                     );
                 },
@@ -850,16 +662,19 @@
             if (isNewTerm) {
                 this.setLoading(true);
                 $.ajax({
-                    url: gbtiAdmin.ajax_url,
+                    url: BCMAdmin.ajax_url,
                     method: 'POST',
                     data: {
                         action: 'BCM_get_parent_terms',
                         category: this.state.currentCategory,
-                        nonce: gbtiAdmin.nonce
+                        nonce: BCMAdmin.nonce
                     },
                     success: (response) => {
                         if (response.success) {
-                            const settings = window.gbtiAdmin?.settings || {};
+                            // Get default prompt from BCMAdmin
+                            const defaultPrompt = window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
+                                window.BCMAdmin.default_ai_prompt : '';
+                                
                             const formData = {
                                 id: '',
                                 name: '',
@@ -870,7 +685,7 @@
                                 parentDropdown: response.data.parent_dropdown,
                                 canDelete: false,
                                 isNewTerm: true,
-                                default_prompt: settings.default_prompt || ''
+                                default_prompt: defaultPrompt
                             };
                             this.renderTermForm(formData);
                         }
@@ -919,9 +734,8 @@
 
             // For new terms, get prompt from settings
             if (formData.isNewTerm) {
-                const settings = window.gbtiAdmin?.settings || {};
-                if (settings.default_prompt) {
-                    formData.default_prompt = settings.default_prompt.replace(
+                if (window.BCMAdmin && window.BCMAdmin.default_ai_prompt) {
+                    formData.default_prompt = window.BCMAdmin.default_ai_prompt.replace(
                         /\[TERM_NAME\]/g,
                         formData.name || ''
                     );
@@ -930,9 +744,20 @@
 
             this.elements.termEditor.removeClass('hidden');
             this.elements.termEditor.find('.BCM-term-editor-header h2')
-                .text(formData.isNewTerm ? gbtiAdmin.i18n.create_term : gbtiAdmin.i18n.edit_term);
+                .text(formData.isNewTerm ? BCMAdmin.i18n.create_term : BCMAdmin.i18n.edit_term);
 
+            // Store the default prompt before rendering
+            const defaultPrompt = formData.default_prompt || 
+                (window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
+                window.BCMAdmin.default_ai_prompt.replace(/\[TERM_NAME\]/g, formData.name || '') : '');
+console.log(window.BCMAdmin)
             this.elements.editorContent.html(this.templates.termForm(formData));
+
+            // Set the OpenAI prompt value after rendering
+            const $promptField = $('#openai-prompt');
+            if ($promptField.length) {
+                $promptField.val(defaultPrompt);
+            }
 
             if (formData.parent) {
                 $('#term-parent').val(formData.parent);
@@ -951,13 +776,13 @@
             this.setLoading(true);
 
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 method: 'POST',
                 data: {
                     action: 'BCM_delete_term',
                     term_id: this.state.currentTermId,
                     category: this.state.currentCategory,
-                    nonce: gbtiAdmin.nonce
+                    nonce: BCMAdmin.nonce
                 },
                 success: (response) => {
                     if (response.success) {
@@ -969,7 +794,7 @@
                     }
                 },
                 error: () => {
-                    this.showError(gbtiAdmin.i18n.delete_error);
+                    this.showError(BCMAdmin.i18n.delete_error);
                 },
                 complete: () => {
                     this.setLoading(false);
@@ -981,8 +806,8 @@
          * Generate description using OpenAI
          */
         generateDescription() {
-            if (!gbtiAdmin.has_api_key) {
-                this.showError(gbtiAdmin.i18n.api_key_missing);
+            if (!BCMAdmin.has_api_key) {
+                this.showError(BCMAdmin.i18n.api_key_missing);
                 return;
             }
 
@@ -995,13 +820,13 @@
             spinner.addClass('is-active');
 
             $.ajax({
-                url: gbtiAdmin.ajax_url,
+                url: BCMAdmin.ajax_url,
                 method: 'POST',
                 data: {
                     action: 'BCM_generate_description',
                     prompt: prompt,
                     term_name: termName,
-                    nonce: gbtiAdmin.nonce
+                    nonce: BCMAdmin.nonce
                 },
                 success: (response) => {
                     if (response.success) {
@@ -1011,7 +836,7 @@
                         this.showError(response.data.message);}
                 },
                 error: () => {
-                    this.showError(gbtiAdmin.i18n.generate_error);
+                    this.showError(BCMAdmin.i18n.generate_error);
                 },
                 complete: () => {
                     button.prop('disabled', false);
@@ -1027,42 +852,41 @@
          * @param {number} duration - Time in milliseconds before auto-dismiss, 0 for no auto-dismiss
          */
         showNotification(message, type = 'info', duration = 3000) {
-            console.log('Showing notification:', message, type);
-            
-            // Make sure container exists and is accessible
-            if (!$('#BCM-notification-container').length) {
-                $('.wrap').prepend('<div id="BCM-notification-container" class="BCM-notification-container"></div>');
-                this.elements.notificationContainer = $('#BCM-notification-container');
-            }
-            
-            // Create notification element
-            const notificationId = 'notification-' + Date.now();
-            const notificationClass = 'BCM-notification BCM-notification-' + type;
-            
-            const notificationHtml = `
-                <div id="${notificationId}" class="${notificationClass}">
-                    <div class="BCM-notification-content">${message}</div>
-                    <div class="BCM-notification-close">&times;</div>
-                </div>
-            `;
-            
-            // Add to container
-            $('#BCM-notification-container').append(notificationHtml);
-            const $notification = $(`#${notificationId}`);
-            
-            // Setup close button
-            $notification.find('.BCM-notification-close').on('click', () => {
-                this.dismissNotification($notification);
-            });
-            
-            // Auto-dismiss after duration (if specified)
-            if (duration > 0) {
-                setTimeout(() => {
+            try {
+                if (!this.elements.notificationContainer || !this.elements.notificationContainer.length) {
+                    console.warn('Notification container not found, creating one');
+                    $('body').prepend('<div id="BCM-notification-container" class="BCM-notification-container"></div>');
+                    this.elements.notificationContainer = $('#BCM-notification-container');
+                }
+                
+                const $notification = $(`
+                    <div class="BCM-notification BCM-notification-${type}">
+                        <div class="BCM-notification-content">
+                            <span class="BCM-notification-message">${message}</span>
+                        </div>
+                        <button type="button" class="BCM-notification-close">
+                            <span class="dashicons dashicons-no-alt"></span>
+                        </button>
+                    </div>
+                `);
+
+                this.elements.notificationContainer.append($notification);
+
+                // Add close button handler
+                $notification.find('.BCM-notification-close').on('click', () => {
                     this.dismissNotification($notification);
-                }, duration);
+                });
+
+                // Auto-dismiss after duration (if not 0)
+                if (duration > 0) {
+                    setTimeout(() => {
+                        this.dismissNotification($notification);
+                    }, duration);
+                }
+            } catch (error) {
+                console.error('Error showing notification:', error, message);
+                alert(message); // Fallback to alert if notification fails
             }
-            
-            return $notification;
         }
         
         /**
@@ -1092,8 +916,12 @@
          * @param {string} message - Error message
          */
         showError(message) {
-            console.log('Error notification:', message);
-            this.showNotification(message, 'error');
+            try {
+                this.showNotification(message, 'error', 0);
+            } catch (error) {
+                console.error('Error showing error notification:', error);
+                alert(message); // Fallback to alert
+            }
         }
 
         /**
@@ -1187,8 +1015,8 @@
             console.log(`Collapsed ${collapsed} term groups`);
             
             // Hide collapse button and show expand button
-            $('.BCM-collapse-all').hide();
-            $('.BCM-expand-all').show();
+            this.elements.collapseAllBtn.hide();
+            this.elements.expandAllBtn.show();
         }
         
         /**
@@ -1231,21 +1059,38 @@
             console.log(`Expanded ${expanded} term groups`);
             
             // Show collapse button and hide expand button
-            $('.BCM-collapse-all').show();
-            $('.BCM-expand-all').hide();
+            this.elements.collapseAllBtn.show();
+            this.elements.expandAllBtn.hide();
         }
 
         /**
          * Utility Methods
          */
         setLoading(loading) {
-            this.state.isLoading = loading;
-            this.elements.loadingOverlay.toggleClass('hidden', !loading);
-
-            if (loading) {
-                $('button').prop('disabled', true);
-            } else {
-                $('button').prop('disabled', false);
+            try {
+                if (!this.state) {
+                    return;
+                }
+                
+                this.state.isLoading = loading;
+                
+                // Use a safer approach to toggle loading overlay
+                if (this.elements && this.elements.loadingOverlay && this.elements.loadingOverlay.length) {
+                    if (loading) {
+                        this.elements.loadingOverlay.removeClass('hidden');
+                    } else {
+                        this.elements.loadingOverlay.addClass('hidden');
+                    }
+                }
+        
+                // Use a safer approach to disable/enable buttons
+                try {
+                    $('button').prop('disabled', loading);
+                } catch (e) {
+                    console.warn('Error toggling button states:', e);
+                }
+            } catch (error) {
+                console.error('Error in setLoading:', error);
             }
         }
 
@@ -1315,23 +1160,55 @@
     }
 
     // Initialize when document is ready
-    $(document).ready(() => {
-        // Store instance for potential external access
-        window.gbtiCategoryEditor = new CategoryEditor();
-
-        // Handle beforeunload
-        $(window).on('beforeunload', function(e) {
-            if (window.gbtiCategoryEditor &&
-                window.gbtiCategoryEditor.state &&
-                window.gbtiCategoryEditor.state.hasUnsavedChanges) {
-                e.preventDefault();
-                return '';
+    $(document).ready(function() {
+        // Create a safer initialization function with better error handling
+        function initCategoryEditor() {
+            try {
+                // Make sure dependencies are available
+                if (typeof wp === 'undefined' || typeof wp.template !== 'function') {
+                    console.error('WordPress template system not available');
+                    setTimeout(initCategoryEditor, 100); // Try again later
+                    return;
+                }
+                
+                // Check for required template elements
+                if ($('#tmpl-BCM-term-row').length === 0 || $('#tmpl-BCM-term-form').length === 0) {
+                    console.error('Required template elements not found in DOM');
+                    return;
+                }
+                
+                // Ignore storage access errors - they're not critical for functionality
+                window.addEventListener('error', function(e) {
+                    if (e.message && e.message.indexOf('storage') !== -1) {
+                        console.warn('Storage access error ignored:', e.message);
+                        e.stopPropagation();
+                        return true; // Prevent default error handling
+                    }
+                }, true);
+                
+                // Create editor instance
+                window.BCMCategoryEditor = new CategoryEditor();
+                
+                // Only initialize if creation was successful
+                if (window.BCMCategoryEditor) {
+                    window.BCMCategoryEditor.init();
+                    
+                    // Handle unsaved changes warning without using storage
+                    $(window).on('beforeunload', function(e) {
+                        if (window.BCMCategoryEditor && 
+                            window.BCMCategoryEditor.state && 
+                            window.BCMCategoryEditor.state.hasUnsavedChanges) {
+                            e.preventDefault();
+                            return '';
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing Category Editor:', error);
             }
-        });
-    });
-
-    // Wait for auth system to validate before initializing
-    $(document).on('BCM:sponsor-valid', function() {
-        window.gbtiCategoryEditor.init();
+        }
+        
+        // Start initialization with a short delay to ensure templates are ready
+        setTimeout(initCategoryEditor, 100);
     });
 })(jQuery);

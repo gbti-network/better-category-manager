@@ -420,26 +420,6 @@
     gap: 10px;
 }
 
-/* Loading Overlay */
-.BCM-loading-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.BCM-loading-overlay .spinner {
-    float: none;
-    visibility: visible;
-    margin: 0;
-}
-
 /* Animations */
 @keyframes fadeIn {
     from {
@@ -629,4 +609,85 @@
         opacity: 0;
         transform: translateX(50px);
     }
+}
+
+/* Loading Overlay */
+.BCM-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.BCM-loading-overlay.hidden {
+    display: none;
+}
+
+.BCM-loading-overlay .spinner {
+    float: none;
+    margin: 0;
+    visibility: visible;
+}
+
+/* Custom Notices */
+.BCM-notice-container {
+    margin: 15px 0 20px;
+}
+
+.BCM-notice {
+    position: relative;
+    border-radius: 2px !important;
+    padding: 10px 40px 10px 14px;
+    margin-bottom: 15px;
+}
+
+.BCM-notice.notice-success {
+    border-left-color: #46b450 !important;
+}
+
+.BCM-notice.notice-error {
+    border-left-color: #dc3232 !important;
+}
+
+.BCM-notice p {
+    margin: 0.5em 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+.BCM-notice .notice-dismiss {
+    position: absolute;
+    top: 0;
+    right: 0;
+    border: none;
+    margin: 0;
+    padding: 9px;
+    background: none;
+    color: #787c82;
+    cursor: pointer;
+}
+
+.BCM-notice .notice-dismiss:before {
+    background: none;
+    color: #787c82;
+    content: "\f153";
+    display: block;
+    font: normal 16px/20px dashicons;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    height: 20px;
+    text-align: center;
+    width: 20px;
+}
+
+.BCM-notice .notice-dismiss:hover:before,
+.BCM-notice .notice-dismiss:active:before,
+.BCM-notice .notice-dismiss:focus:before {
+    color: #d63638;
 }

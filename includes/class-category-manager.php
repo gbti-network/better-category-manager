@@ -1,6 +1,8 @@
 <?php
 namespace BCM;
 
+use BCM\Settings;
+
 /**
  * Handles admin interface functionality for the BCM Category Manager
  */
@@ -75,9 +77,26 @@ class Admin {
 
         // Enqueue JavaScript
         wp_enqueue_script(
+            'BCM-utils',
+            BCM_ASSETS_URL . 'js/utils.js',
+            ['jquery'],
+            BCM_VERSION,
+            true
+        );
+        
+        wp_enqueue_script(
+            'BCM-logging',
+            BCM_ASSETS_URL . 'js/debug.js',
+            ['jquery', 'BCM-utils'],
+            BCM_VERSION,
+            true
+        );
+
+        // Enqueue JavaScript with wp-util dependency
+        wp_enqueue_script(
             'BCM-admin-script',
             BCM_ASSETS_URL . 'js/category-manager.js',
-            ['jquery', 'wp-util'],
+            ['jquery', 'wp-util', 'BCM-utils', 'BCM-logging', 'jquery-ui-sortable'],
             BCM_VERSION,
             true
         );
@@ -85,7 +104,7 @@ class Admin {
         wp_enqueue_script(
             'BCM-import-export-script',
             BCM_ASSETS_URL . 'js/import-export.js',
-            ['jquery'],
+            ['jquery', 'BCM-utils'],
             BCM_VERSION,
             true
         );
@@ -95,11 +114,11 @@ class Admin {
             'nonce' => wp_create_nonce('BCM_nonce'),
             'ajaxurl' => admin_url('admin-ajax.php'),
             'i18n' => [
-                'export_success' => __('Export completed successfully.','better-category-manager'),
-                'export_error' => __('Export failed. Please try again.','better-category-manager'),
-                'import_success' => __('Import completed successfully.','better-category-manager'),
-                'import_error' => __('Import failed. Please try again.','better-category-manager'),
-                'invalid_file' => __('Please select a valid JSON file.','better-category-manager')
+                'export_success' => esc_html__('Export completed successfully.','better-category-manager'),
+                'export_error' => esc_html__('Export failed. Please try again.','better-category-manager'),
+                'import_success' => esc_html__('Import completed successfully.','better-category-manager'),
+                'import_error' => esc_html__('Import failed. Please try again.','better-category-manager'),
+                'invalid_file' => esc_html__('Please select a valid JSON file.','better-category-manager')
             ]
         ]);
 
@@ -108,16 +127,24 @@ class Admin {
             'ajax_url' => admin_url('admin-ajax.php'),
             'adminUrl' => admin_url(),
             'nonce' => wp_create_nonce('BCM_nonce'),
+            'has_api_key' => $this->is_api_key_configured(),
+            'settings' => get_option('BCM_settings', []),
+            'default_ai_prompt' => Settings::get_instance()->get_default_ai_prompt(),
             'i18n' => [
-                'save_success' => __('Category updated successfully.', 'better-category-manager'),
-                'save_error' => __('Error saving category.', 'better-category-manager'),
-                'confirm_delete' => __('Are you sure you want to delete this category?', 'better-category-manager'),
-                'loading' => __('Loading...', 'better-category-manager'),
-                'error_loading' => __('Error loading categories.', 'better-category-manager'),
-                'no_terms' => __('No categories found.', 'better-category-manager'),
-                'create_term' => __('Create Category', 'better-category-manager'),
-                'edit_term' => __('Edit Category', 'better-category-manager'),
-                'unsavedChanges' => __('There are unsaved changes. Do you want to discard them?', 'better-category-manager')
+                'save_success' => esc_html__('Category updated successfully.', 'better-category-manager'),
+                'save_error' => esc_html__('Error saving category.', 'better-category-manager'),
+                'confirm_delete' => esc_html__('Are you sure you want to delete this category?', 'better-category-manager'),
+                'loading' => esc_html__('Loading...', 'better-category-manager'),
+                'error_loading' => esc_html__('Error loading categories.', 'better-category-manager'),
+                'no_terms' => esc_html__('No categories found.', 'better-category-manager'),
+                'create_term' => esc_html__('Create Category', 'better-category-manager'),
+                'edit_term' => esc_html__('Edit Category', 'better-category-manager'),
+                'unsaved_changes' => esc_html__('There are unsaved changes. Do you want to discard them?', 'better-category-manager'),
+                'term_updated' => esc_html__('Term updated successfully.', 'better-category-manager'),
+                'delete_error' => esc_html__('Error deleting term.', 'better-category-manager'),
+                'generate_error' => esc_html__('Error generating description.', 'better-category-manager'),
+                'api_key_missing' => esc_html__('OpenAI API key is not configured. Please configure it in the settings.', 'better-category-manager'),
+                'hierarchy_update_error' => esc_html__('Error updating term hierarchy.', 'better-category-manager')
             ]
         ]);
     }
@@ -151,6 +178,14 @@ class Admin {
         }
         
         return $taxonomies;
+    }
+
+      /**
+     * Check if API key is configured
+     */
+    public function is_api_key_configured() {
+        $settings = get_option('BCM_settings');
+        return !empty($settings['openai_api_key']);
     }
 
     /**
