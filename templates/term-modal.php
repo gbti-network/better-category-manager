@@ -32,12 +32,10 @@ if (!defined('ABSPATH')) {
             <!-- Term Information -->
             <div class="BCM-term-info">
                 <span class="BCM-term-name">{{ data.name }}</span>
-                <# if (data.count > 0) { #>
                 <span class="BCM-term-count"
                       title="<?php esc_attr_e('Number of posts using this term','better-category-manager'); ?>">
-                        {{ data.count }}
-                    </span>
-                <# } #>
+                    {{ data.count || '0' }}
+                </span>
             </div>
 
             <!-- Term Actions -->

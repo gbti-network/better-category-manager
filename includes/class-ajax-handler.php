@@ -50,121 +50,58 @@ class Ajax_Handler {
         // Verify nonce
         $this->verify_nonce();
 
-        // Get taxonomy from request
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key($_POST['taxonomy']) : 'category';
+        // Force taxonomy to be 'category' since this is the Better Category Manager
+        $taxonomy = 'category';
         $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
-        $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-        $per_page = $this->get_items_per_page();
-        $offset = ($page - 1) * $per_page;
         
         // Get settings
         $settings = get_option('BCM_settings', []);
         $show_count = isset($settings['show_count']) ? (bool) $settings['show_count'] : true;
 
-        // Query args
+        // Query args - always get all categories without pagination
         $args = [
             'taxonomy' => $taxonomy,
             'hide_empty' => false,
             'search' => $search,
-            'number' => $per_page > 0 ? $per_page : 0,
-            'offset' => $per_page > 0 ? $offset : 0,
             'orderby' => 'name',
             'order' => 'ASC',
             'fields' => 'all'
         ];
 
-        // Get taxonomy object
-        $taxonomy_obj = get_taxonomy($taxonomy);
-        if (!$taxonomy_obj) {
-            wp_send_json_error(['message' => __('Invalid taxonomy.', 'better-category-manager')]);
-        }
-
-        // Get hierarchical setting from taxonomy
-        $is_hierarchical = $taxonomy_obj->hierarchical;
+        // Get all categories
+        $terms = get_terms($args);
         
-        if ($is_hierarchical) {
-            // For hierarchical taxonomies, we need to get all terms and build a tree
-            unset($args['number']);
-            unset($args['offset']);
-            $terms = get_terms($args);
-            
-            if (is_wp_error($terms)) {
-                wp_send_json_error(['message' => $terms->get_error_message()]);
-            }
-            
-            // Count total before building hierarchy
-            $total = count($terms);
-            
-            // Build term tree
-            $terms_tree = $this->build_term_tree($terms);
-            
-            // Paginate the flattened tree
-            if ($per_page > 0) {
-                $flattened_tree = $this->flatten_term_tree($terms_tree);
-                $total_pages = ceil(count($flattened_tree) / $per_page);
-                $paginated_tree = array_slice($flattened_tree, $offset, $per_page);
-                
-                $response = [
-                    'terms' => $paginated_tree,
-                    'total' => count($flattened_tree),
-                    'total_pages' => $total_pages,
-                    'current_page' => $page,
-                    'per_page' => $per_page,
-                    'is_hierarchical' => true
-                ];
-            } else {
-                // Return the full tree
-                $response = [
-                    'terms' => $terms_tree,
-                    'total' => $total,
-                    'total_pages' => 1,
-                    'current_page' => 1,
-                    'per_page' => $total,
-                    'is_hierarchical' => true
-                ];
-            }
-        } else {
-            // For non-hierarchical taxonomies, get paginated terms
-            $terms = get_terms($args);
-            
-            if (is_wp_error($terms)) {
-                wp_send_json_error(['message' => $terms->get_error_message()]);
-            }
-            
-            // Get total without pagination
-            $count_args = [
-                'taxonomy' => $taxonomy,
-                'hide_empty' => false,
-                'search' => $search,
-                'fields' => 'count'
-            ];
-            $total = get_terms($count_args);
-            $total_pages = $per_page > 0 ? ceil($total / $per_page) : 1;
-            
-            // Format terms for response
-            $formatted_terms = [];
-            foreach ($terms as $term) {
-                $formatted_terms[] = [
-                    'id' => $term->term_id,
-                    'name' => $term->name,
-                    'slug' => $term->slug,
-                    'description' => $term->description,
-                    'count' => $show_count ? $term->count : null,
-                    'parent' => $term->parent,
-                    'link' => get_term_link($term),
-                    'level' => 0 // Non-hierarchical terms are all at level 0
-                ];
-            }
-            
-            $response = [
-                'terms' => $formatted_terms,
-                'total' => $total,
-                'total_pages' => $total_pages,
-                'current_page' => $page,
-                'per_page' => $per_page,
-                'is_hierarchical' => false
+        if (is_wp_error($terms)) {
+            wp_send_json_error(['message' => $terms->get_error_message()]);
+        }
+        
+        // Count total
+        $total = count($terms);
+        
+        // Format terms as a flat list for the existing JS to handle
+        $formatted_terms = [];
+        foreach ($terms as $term) {
+            $formatted_terms[] = [
+                'id' => $term->term_id,
+                'name' => $term->name,
+                'slug' => $term->slug,
+                'description' => $term->description,
+                'count' => $show_count ? $term->count : 0, // Always include count, use 0 if show_count is false
+                'parent' => $term->parent,
+                'link' => get_term_link($term),
+                'level' => 0 // This will be calculated by the JS based on parent
             ];
         }
+        
+        // Return all terms with no pagination
+        $response = [
+            'terms' => $formatted_terms,
+            'total' => $total,
+            'total_pages' => 1,
+            'current_page' => 1,
+            'per_page' => $total,
+            'is_hierarchical' => true
+        ];
         
         wp_send_json_success($response);
     }
@@ -222,31 +159,100 @@ class Ajax_Handler {
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key($_POST['taxonomy']) : 'category';
+        $taxonomy = isset($_POST['category']) ? sanitize_key($_POST['category']) : 'category';
         
         if (!$term_id) {
-            wp_send_json_error(['message' => __('Invalid term ID.', 'better-category-manager')]);
+            wp_send_json_error(['message' => esc_html__('Invalid term ID.', 'better-category-manager')]);
         }
         
         $term = get_term($term_id, $taxonomy);
         if (!$term || is_wp_error($term)) {
-            wp_send_json_error(['message' => __('Term not found.', 'better-category-manager')]);
+            wp_send_json_error(['message' => esc_html__('Term not found.', 'better-category-manager')]);
         }
         
         // Get term meta
         $term_meta = get_term_meta($term_id);
         
+        // Get parent terms for the dropdown
+        $parent_terms = $this->get_parent_dropdown_html($taxonomy, $term_id, $term->parent);
+        
+        // Get taxonomy info
+        $taxonomy_obj = get_taxonomy($taxonomy);
+        $taxonomy_info = [
+            'hierarchical' => $taxonomy_obj->hierarchical,
+            'label' => $taxonomy_obj->label
+        ];
+        
         $response = [
-            'id' => $term->term_id,
-            'name' => $term->name,
-            'slug' => $term->slug,
-            'description' => $term->description,
-            'parent' => $term->parent,
-            'taxonomy' => $term->taxonomy,
-            'meta' => $term_meta
+            'term' => [
+                'id' => $term->term_id,
+                'name' => $term->name,
+                'slug' => $term->slug,
+                'description' => $term->description,
+                'parent' => $term->parent,
+                'taxonomy' => $term->taxonomy,
+                'meta' => $term_meta
+            ],
+            'parent_terms' => $parent_terms,
+            'category' => $taxonomy_info
         ];
         
         wp_send_json_success($response);
+    }
+
+    /**
+     * Get parent dropdown HTML
+     */
+    private function get_parent_dropdown_html($taxonomy, $exclude_id = 0, $selected = 0) {
+        // Force taxonomy to be 'category' for Better Category Manager
+        $taxonomy = 'category';
+        
+        // Get all terms
+        $terms = get_terms([
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+            'exclude' => $exclude_id
+        ]);
+        
+        if (is_wp_error($terms)) {
+            return '';
+        }
+        
+        $dropdown = '<option value="0">' . esc_html__('None', 'better-category-manager') . '</option>';
+        
+        if (!empty($terms)) {
+            $dropdown .= $this->build_term_dropdown_options($terms, 0, 0, $selected);
+        }
+        
+        return $dropdown;
+    }
+    
+    /**
+     * Build term dropdown options with proper indentation
+     */
+    private function build_term_dropdown_options($terms, $parent = 0, $level = 0, $selected = 0) {
+        $options = '';
+        $indent = str_repeat('&mdash; ', $level);
+        
+        foreach ($terms as $term) {
+            if ($term->parent != $parent) {
+                continue;
+            }
+            
+            $is_selected = ($term->term_id == $selected) ? ' selected="selected"' : '';
+            $options .= sprintf(
+                '<option value="%d"%s>%s%s</option>',
+                $term->term_id,
+                $is_selected,
+                $indent,
+                esc_html($term->name)
+            );
+            
+            // Recursively add children
+            $options .= $this->build_term_dropdown_options($terms, $term->term_id, $level + 1, $selected);
+        }
+        
+        return $options;
     }
 
     /**
@@ -454,37 +460,14 @@ class Ajax_Handler {
         // Verify nonce
         $this->verify_nonce();
 
-        // Get taxonomy from request
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key($_POST['taxonomy']) : 'category';
+        // Get taxonomy from request - force 'category' for Better Category Manager
+        $taxonomy = 'category';
         $exclude = isset($_POST['exclude']) ? intval($_POST['exclude']) : 0;
         
-        // Get taxonomy object
-        $taxonomy_obj = get_taxonomy($taxonomy);
-        if (!$taxonomy_obj || !$taxonomy_obj->hierarchical) {
-            wp_send_json_error(['message' => __('This taxonomy does not support parent-child relationships.', 'better-category-manager')]);
-        }
+        // Get parent dropdown HTML
+        $parent_dropdown = $this->get_parent_dropdown_html($taxonomy, $exclude);
         
-        // Get terms
-        $terms = get_terms([
-            'taxonomy' => $taxonomy,
-            'hide_empty' => false,
-            'exclude' => $exclude > 0 ? [$exclude] : [],
-            'fields' => 'id=>name'
-        ]);
-        
-        if (is_wp_error($terms)) {
-            wp_send_json_error(['message' => $terms->get_error_message()]);
-        }
-        
-        // Format terms for dropdown
-        $options = [];
-        $options[0] = __('None', 'better-category-manager');
-        
-        foreach ($terms as $id => $name) {
-            $options[$id] = $name;
-        }
-        
-        wp_send_json_success(['options' => $options]);
+        wp_send_json_success(['parent_dropdown' => $parent_dropdown]);
     }
     
     /**

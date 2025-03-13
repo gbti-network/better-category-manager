@@ -54,24 +54,7 @@ $current_category_name = $this->get_current_category();
         <?php endif; ?>
 
         <div class="BCM-category-controls">
-            <!-- Category Selector -->
-            <div class="BCM-control-group">
-                <label for="category-select" class="screen-reader-text">
-                    <?php esc_html_e('Select Category','better-category-manager'); ?>
-                </label>
-                <select id="category-select" class="BCM-category-select">
-                    <?php foreach ($taxonomies as $tax): ?>
-                        <option value="<?php echo esc_attr($tax->name); ?>"
-                            <?php selected($current_category_name, $tax->name); ?>>
-                            <?php echo esc_html($tax->labels->name); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <button type="button" class="button button-primary" id="add-new-term">
-                    <?php esc_html_e('Add New Term','better-category-manager'); ?>
-                </button>
-            </div>
+           
 
             <!-- Search Box -->
             <div class="BCM-control-group">
@@ -80,8 +63,13 @@ $current_category_name = $this->get_current_category();
                 </label>
                 <input type="search" id="term-search"
                        placeholder="<?php esc_attr_e('Search terms...','better-category-manager'); ?>">
-                <!-- Expand/Collapse Controls -->
-                <div class="BCM-tree-controls">
+               
+            </div>
+
+             <!-- Category Selector -->
+             <div class="BCM-control-group">
+                 <!-- Expand/Collapse Controls -->
+                 <div class="BCM-tree-controls">
                     <button type="button" class="button BCM-collapse-all" title="<?php esc_attr_e('Collapse All Terms','better-category-manager'); ?>">
                         <?php esc_html_e('Collapse All','better-category-manager'); ?>
                     </button>
@@ -89,6 +77,9 @@ $current_category_name = $this->get_current_category();
                         <?php esc_html_e('Expand All','better-category-manager'); ?>
                     </button>
                 </div>
+                <button type="button" class="button button-primary" id="add-new-term">
+                    <?php esc_html_e('Add New Term','better-category-manager'); ?>
+                </button>
             </div>
         </div>
 

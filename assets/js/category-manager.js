@@ -83,7 +83,6 @@
          */
         initializeElements() {
             this.elements = {
-                categorySelect: $('#category-select'),
                 termSearch: $('#term-search'),
                 addNewBtn: $('#add-new-term'),
                 termsTree: $('#category-terms-tree'),
@@ -110,7 +109,7 @@
          */
         initializeState() {
             this.state = {
-                currentCategory: this.elements.categorySelect.val(),
+                currentCategory: 'category', // Always set to 'category' for Better Category Manager
                 currentTermId: null,
                 expandedTerms: new Set(),
                 isDragging: false,
@@ -148,12 +147,6 @@
          */
         bindEvents() {
             try {
-                // Category selection
-                this.elements.categorySelect.on('change', () => {
-                    this.state.currentCategory = this.elements.categorySelect.val();
-                    this.loadTerms();
-                });
-
                 // Term search
                 this.elements.termSearch.on('input', this.debounce(() => {
                     this.filterTerms(this.elements.termSearch.val());
@@ -375,21 +368,193 @@
                     return;
                 }
                 
+                // Skip if category is not hierarchical
+                if (!this.state.isHierarchical) {
+                    console.log('Skipping drag and drop initialization for non-hierarchical category');
+                    return;
+                }
+                
+                console.log('Initializing drag and drop');
+                
                 const self = this;
                 
-                this.elements.termsTree.sortable({
+                $('.BCM-terms-tree .BCM-term-list').sortable({
+                    handle: '.BCM-term-handle',
                     items: '> li',
                     placeholder: 'BCM-sortable-placeholder',
-                    handle: '.BCM-term-handle',
-                    update: function(event, ui) {
-                        self.updateTermOrder();
+                    tolerance: 'pointer',
+                    cursor: 'move',
+                    connectWith: '.BCM-term-list',
+                    delay: 150,
+                    helper: 'clone',
+                    grid: [20, 1],
+
+                    start: (e, ui) => {
+                        console.log('Drag Start');
+                        const $item = ui.item;
+                        const $itemRow = $item.find('.BCM-term-row');
+                        const itemOffset = $itemRow.offset();
+
+                        this.state.isDragging = true;
+                        this.state.mouseTracking = {
+                            startX: e.pageX,
+                            currentX: e.pageX,
+                            startOffset: itemOffset
+                        };
+                        this.state.currentItemId = $itemRow.data('id');
+
+                        ui.placeholder.height(ui.item.height());
+                        $itemRow.addClass('is-dragging');
+                    },
+
+                    sort: (e, ui) => {
+                        const $placeholder = ui.placeholder;
+                        const dragDistance = e.pageX - this.state.mouseTracking.startX;
+                        const mouseY = e.pageY;
+                        const draggedItemId = ui.item.find('.BCM-term-row').data('id');
+
+                        // Clear previous visual indicators
+                        $('.BCM-term-row').removeClass('potential-parent hover-target');
+                        $('.temp-drop-container').removeClass('active');
+                        $('.nesting-helper').remove();
+
+                        // Find potential parent based on mouse position
+                        const $potentialParents = $('.BCM-term-row').filter(function() {
+                            const $this = $(this);
+                            const thisOffset = $this.offset();
+                            const isAboveMouse = thisOffset.top < mouseY;
+                            const isWithinHorizontalRange = Math.abs(thisOffset.left - $placeholder.offset().left) < 50;
+                            const isNotDraggedItem = $this.data('id') !== draggedItemId;
+                            const isNotChild = !$this.closest('li').find(`[data-id="${draggedItemId}"]`).length;
+
+                            return isAboveMouse && isWithinHorizontalRange && isNotDraggedItem && isNotChild;
+                        });
+
+                        let closestParent = null;
+                        let closestDistance = Infinity;
+
+                        $potentialParents.each(function() {
+                            const $this = $(this);
+                            const thisOffset = $this.offset();
+                            const distance = Math.sqrt(
+                                Math.pow(mouseY - thisOffset.top, 2) +
+                                Math.pow(e.pageX - thisOffset.left, 2)
+                            );
+
+                            if (distance < closestDistance) {
+                                closestDistance = distance;
+                                closestParent = $this;
+                            }
+                        });
+
+                        // Apply nesting visual indicators if dragging right
+                        if (closestParent && dragDistance > 100) {
+                            const potentialParentId = closestParent.data('id');
+
+                            // Store the potential parent for use in stop handler
+                            this.state.potentialParentId = potentialParentId;
+
+                            // Apply visual indicators
+                            closestParent.addClass('potential-parent hover-target');
+                            $placeholder.addClass('is-child-indent').css('margin-left', '20px');
+
+                            // Add or update drop container
+                            let $dropContainer = closestParent.next('.BCM-term-list');
+                            if (!$dropContainer.length) {
+                                $dropContainer = $('<ul class="BCM-term-list temp-drop-container"></ul>');
+                                closestParent.after($dropContainer);
+                            }
+                            $dropContainer.addClass('active');
+
+                            // Add helper text
+                            if (!closestParent.find('.nesting-helper').length) {
+                                closestParent.append(
+                                    '<span class="nesting-helper">Release to nest under ' +
+                                    closestParent.find('.BCM-term-name').text() + '</span>'
+                                );
+                            }
+                        } else {
+                            // Reset nesting state when not dragging right
+                            this.state.potentialParentId = null;
+                            $placeholder.removeClass('is-child-indent').css('margin-left', '');
+                        }
+                    },
+
+                    stop: (e, ui) => {
+                        const $item = ui.item;
+                        const dragDistance = e.pageX - this.state.mouseTracking.startX;
+                        let newParentId = 0;
+
+                        // Use the stored potential parent if we were dragging right
+                        if (this.state.potentialParentId && dragDistance > 100) {
+                            newParentId = this.state.potentialParentId;
+                            const $parent = $(`.BCM-term-row[data-id="${newParentId}"]`);
+
+                            // Create or get child list
+                            let $childList = $parent.next('.BCM-term-list:not(.temp-drop-container)');
+                            if (!$childList.length) {
+                                $childList = $('<ul class="BCM-term-list"></ul>');
+                                $parent.after($childList);
+                            }
+
+                            // Move item to child list
+                            $item.appendTo($childList);
+
+                            // Update toggle button
+                            this.updateToggleButton($parent);
+                        } else {
+                            // If not nesting, parent is determined by the containing list
+                            const $parentRow = $item.parent('.BCM-term-list').prev('.BCM-term-row');
+                            newParentId = $parentRow.length ? $parentRow.data('id') : 0;
+                        }
+
+                        // Cleanup
+                        $('.BCM-term-row').removeClass('potential-parent hover-target is-dragging');
+                        $('.temp-drop-container').removeClass('active');
+                        $('.nesting-helper').remove();
+
+                        // Update hierarchy
+                        this.updateTermHierarchy($item, newParentId);
+
+                        // Reset state
+                        this.state.mouseTracking = { startX: 0, currentX: 0 };
+                        this.state.potentialParentId = null;
                     }
-                });
+                }).disableSelection();
                 
                 // Log success message
                 console.log('Drag and drop initialized successfully');
             } catch (error) {
                 console.error('Failed to initialize drag and drop:', error);
+            }
+        }
+
+        /**
+         * Helper method to update toggle button
+         */
+        updateToggleButton($parent) {
+            const $existing = $parent.find('.BCM-toggle-children');
+            const hasChildren = $parent.next('.BCM-term-list').children().length > 0;
+
+            if (!hasChildren) {
+                // If no children, remove the toggle button and replace with placeholder
+                if ($existing.length && !$existing.hasClass('BCM-toggle-placeholder')) {
+                    $existing.replaceWith('<span class="BCM-toggle-placeholder"></span>');
+                }
+            } else {
+                // If has children, ensure toggle button exists and is in correct state
+                if (!$existing.length || $existing.hasClass('BCM-toggle-placeholder')) {
+                    $parent.find('.BCM-toggle-placeholder').replaceWith(`
+                <button type="button" class="BCM-toggle-children expanded" title="Toggle children visibility">
+                    <span class="dashicons dashicons-arrow-down"></span>
+                </button>
+            `);
+                } else {
+                    $existing.addClass('expanded')
+                        .find('.dashicons')
+                        .addClass('dashicons-arrow-down')
+                        .removeClass('dashicons-arrow-right');
+                }
             }
         }
 
@@ -543,8 +708,9 @@
                         // Log the response to verify data
                         console.log('Term data received:', response.data);
                         
-                        // Check if we have a direct term data object
-                        const termData = response.data.term || response.data;
+                        // New structure has term object and parent_terms
+                        const termData = response.data.term || {};
+                        const parentDropdown = response.data.parent_terms || '';
                         
                         // Safely check for required properties
                         if (!termData || typeof termData !== 'object') {
@@ -553,7 +719,7 @@
                             return;
                         }
                         
-                        // Get category info - may be in different locations depending on response structure
+                        // Get category info
                         const categoryInfo = response.data.category || {};
                         const showParent = categoryInfo.hierarchical !== undefined ? 
                             !!categoryInfo.hierarchical : this.state.isHierarchical;
@@ -568,10 +734,10 @@
                             name: termData.name || '',
                             slug: termData.slug || '',
                             description: termData.description || '',
-                            category: termData.category || termData.taxonomy || this.state.currentCategory,
+                            category: termData.taxonomy || this.state.currentCategory,
                             parent: termData.parent || 0,
                             showParent: showParent,
-                            parentDropdown: response.data.parent_terms || '',
+                            parentDropdown: parentDropdown,
                             canDelete: true,
                             default_prompt: defaultPrompt
                         };
@@ -682,13 +848,22 @@
                                 description: '',
                                 category: this.state.currentCategory,
                                 showParent: true,
-                                parentDropdown: response.data.parent_dropdown,
+                                parentDropdown: response.data.parent_dropdown || '',
                                 canDelete: false,
                                 isNewTerm: true,
                                 default_prompt: defaultPrompt
                             };
                             this.renderTermForm(formData);
+                        } else {
+                            const errorMsg = response.data && response.data.message ? 
+                                response.data.message : 
+                                'Failed to load parent categories. Please try again.';
+                            this.showError(errorMsg);
                         }
+                    },
+                    error: (xhr, status, error) => {
+                        console.error('Ajax error:', {xhr, status, error});
+                        this.showError('Failed to load parent categories. Please try again.');
                     },
                     complete: () => {
                         this.setLoading(false);
@@ -729,16 +904,6 @@
                 } catch (e) {
                     console.error('Error processing prompt:', e);
                     formData.default_prompt = '';
-                }
-            }
-
-            // For new terms, get prompt from settings
-            if (formData.isNewTerm) {
-                if (window.BCMAdmin && window.BCMAdmin.default_ai_prompt) {
-                    formData.default_prompt = window.BCMAdmin.default_ai_prompt.replace(
-                        /\[TERM_NAME\]/g,
-                        formData.name || ''
-                    );
                 }
             }
 
@@ -1105,7 +1270,6 @@ console.log(window.BCMAdmin)
          */
         destroy() {
             // Remove event listeners
-            this.elements.categorySelect.off();
             this.elements.termSearch.off();
             this.elements.addNewBtn.off();
             this.elements.termsTree.off();

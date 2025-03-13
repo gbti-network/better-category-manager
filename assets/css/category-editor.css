@@ -23,7 +23,7 @@
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 20px;
     margin: 20px 0;
     padding: 15px;
@@ -40,10 +40,11 @@
 }
 
 #term-search {
-    width: 200px;
+    width: 400px;
     padding: 8px;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
+    margin-right:auto;
 }
 
 /* Tree Controls (Expand/Collapse All) */
@@ -282,23 +283,23 @@
 }
 
 /* Placeholder Styling */
-.BCM-term-placeholder {
+.BCM-sortable-placeholder {
     border: 2px dashed #2271b1;
-    margin-left:20px;
+    margin-left: 20px;
     height: 40px !important;
     border-radius: 3px;
     background: #f8f9fa;
     transition: all 0.2s ease;
 }
 
-.BCM-term-placeholder.is-child-indent {
+.BCM-sortable-placeholder.is-child-indent {
     margin-left: 40px !important;
     border-left: 4px solid #2271b1;
     background: rgba(34, 113, 177, 0.1);
     position: relative;
 }
 
-.BCM-term-placeholder.is-child-indent::before {
+.BCM-sortable-placeholder.is-child-indent::before {
     content: '';
     position: absolute;
     left: -20px;
