@@ -41,11 +41,11 @@ class Settings {
         register_setting(
             $this->option_group,
             $this->option_name,
-            array(
+            [
                 'type' => 'array',
                 'sanitize_callback' => [$this, 'sanitize_settings'],
                 'default' => $this->get_default_settings()
-            )
+            ]
         );
 
         // General Settings Section
@@ -90,7 +90,8 @@ class Settings {
             [
                 'label_for' => 'openai_api_key',
                 'description' => sprintf(
-                    esc_html__('Your OpenAI API key for generating term descriptions. %sGet your API key here%s.', 'better-category-manager'),
+                    /* translators: %1$s: opening link tag, %2$s: closing link tag */
+                    esc_html__('Your OpenAI API key for generating term descriptions. %1$sGet your API key here%2$s.', 'better-category-manager'),
                     '<a href="https://platform.openai.com/api-keys" target="_blank">',
                     '</a>'
                 )
@@ -100,6 +101,7 @@ class Settings {
         // OpenAI Model
         add_settings_field(
             'openai_model',
+            /* translators: %1$s: opening link tag, %2$s: closing link tag */
             esc_html__('OpenAI Model', 'better-category-manager'),
             [$this, 'render_select_field'],
             $this->settings_page,
@@ -107,7 +109,8 @@ class Settings {
             [
                 'label_for' => 'openai_model',
                 'description' => sprintf(
-                    esc_html__('Select the OpenAI model to use for generating term descriptions. %sView OpenAI pricing and available models%s', 'better-category-manager'),
+                    /* translators: %1$s: opening link tag, %2$s: closing link tag */
+                    esc_html__('Select the OpenAI model to use for generating term descriptions. %1$sView OpenAI pricing and available models%2$s', 'better-category-manager'),
                     '<a href="https://platform.openai.com/docs/pricing" target="_blank">',
                     '</a>'
                 ),
@@ -440,15 +443,20 @@ class Settings {
 
     /**
      * Sanitize settings
+     * 
+     * @param array $input The input array to sanitize
+     * @return array Sanitized settings
      */
     public function sanitize_settings($input) {
         $sanitized = [];
         
         // Boolean settings
         $sanitized['show_post_counts'] = isset($input['show_post_counts']) ? (bool) $input['show_post_counts'] : true;
-        $sanitized['openai_api_key'] = sanitize_text_field($input['openai_api_key']);
-        $sanitized['openai_model'] = sanitize_text_field($input['openai_model']);
-        $sanitized['default_ai_prompt'] = sanitize_text_field($input['default_ai_prompt']);
+        
+        // Text fields - ensure proper sanitization and handle missing values
+        $sanitized['openai_api_key'] = isset($input['openai_api_key']) ? sanitize_text_field(wp_unslash($input['openai_api_key'])) : '';
+        $sanitized['openai_model'] = isset($input['openai_model']) ? sanitize_text_field(wp_unslash($input['openai_model'])) : 'gpt-3.5-turbo';
+        $sanitized['default_ai_prompt'] = isset($input['default_ai_prompt']) ? sanitize_textarea_field(wp_unslash($input['default_ai_prompt'])) : '';
         
         return $sanitized;
     }
@@ -532,11 +540,7 @@ class Settings {
      */
     public function ajax_validate_openai_api_key() {
         // Check nonce for security
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'BCM_settings_nonce')) {
-            wp_send_json_error([
-                'message' => esc_html__('Security check failed.', 'better-category-manager')
-            ]);
-        }
+        check_ajax_referer('BCM_settings_nonce', 'nonce');
 
         // Check if API key is provided
         if (!isset($_POST['api_key']) || empty($_POST['api_key'])) {
@@ -545,7 +549,7 @@ class Settings {
             ]);
         }
 
-        $api_key = sanitize_text_field($_POST['api_key']);
+        $api_key = sanitize_text_field(wp_unslash($_POST['api_key']));
 
         // Make a test request to OpenAI API
         $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [

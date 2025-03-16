@@ -1,0 +1,45 @@
+/**
+ * Menu highlight styles for Better Category Manager
+ * Ensures proper menu highlighting when viewing the category manager
+ */
+
+/* Force the Posts menu to appear open and selected */
+#menu-posts,
+#menu-posts > a.wp-has-submenu {
+    background-color: #2271b1 !important;
+    color: #fff !important;
+}
+
+#menu-posts.wp-not-current-submenu .wp-submenu {
+    display: block !important;
+}
+
+
+/* Force the submenu to be visible */
+#menu-posts .wp-submenu {
+    display: block !important;
+    opacity: 1 !important;
+    margin-left: 0 !important;
+    top: 0 !important;
+}
+
+/* Direct targeting by link content and href - from browser inspection */
+#menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+/* Find the li containing the Categories link */
+#menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
+    background-color: rgba(0,0,0,0.1) !important;
+}
+
+/* Adding highlighting to any li with .current class */
+#menu-posts .wp-submenu li.current a {
+    color: #fff !important;
+    font-weight: 600 !important;
+}
+
+#menu-posts .wp-submenu li.current {
+    background-color: rgba(0,0,0,0.1) !important;
+}

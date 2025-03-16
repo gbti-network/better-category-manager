@@ -547,16 +547,12 @@ class Import_Export {
                 'slug' => $term_data['slug'],
                 'description' => isset($term_data['description']) ? $term_data['description'] : '',
             ];
-
-            // Add debugging
-            error_log('BCM Import: Creating new term: ' . $term_data['name'] . ' in taxonomy: ' . $taxonomy);
-            
+ 
             $new_term = wp_insert_term($term_data['name'], $taxonomy, $insert_args);
             
             if (is_wp_error($new_term)) {
                 $result['status'] = 'error';
                 $result['error'] = $new_term->get_error_message();
-                error_log('BCM Import Error: ' . $new_term->get_error_message());
             } else {
                 $result['status'] = 'created';
                 $result['term_id'] = $new_term['term_id'];

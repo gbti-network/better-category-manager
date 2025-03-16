@@ -728,3 +728,16 @@
 .BCM-notice .notice-dismiss:focus:before {
     color: #d63638;
 }
+
+/* Fix for admin page styling */
+.wrap h1.wp-heading-inline {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+/* Fix for import/export controls */
+.BCM-import-export-controls {
+    display: inline-block;
+    margin-left: 15px;
+    vertical-align: middle;
+}

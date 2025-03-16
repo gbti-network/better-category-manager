@@ -48,7 +48,7 @@ class Ajax_Handler {
      */
     public function handle_get_terms() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Force taxonomy to be 'category' since this is the Better Category Manager
         $taxonomy = 'category';
@@ -155,7 +155,7 @@ class Ajax_Handler {
      */
     public function handle_get_term_data() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -260,7 +260,7 @@ class Ajax_Handler {
      */
     public function handle_save_term() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get data from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -313,18 +313,11 @@ class Ajax_Handler {
      */
     public function handle_delete_term() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
         $taxonomy = isset($_POST['category']) ? sanitize_key($_POST['category']) : 'category';
-        
-        // Log the incoming request data for debugging
-        error_log('BCM Delete Term Request: ' . print_r([
-            'term_id' => $term_id,
-            'taxonomy' => $taxonomy,
-            'post_data' => $_POST
-        ], true));
         
         if (!$term_id) {
             wp_send_json_error(['message' => esc_html__('Invalid term ID.', 'better-category-manager')]);
@@ -334,7 +327,6 @@ class Ajax_Handler {
         $term = get_term($term_id, $taxonomy);
         if (!$term || is_wp_error($term)) {
             $error_message = is_wp_error($term) ? $term->get_error_message() : esc_html__('Term does not exist.', 'better-category-manager');
-            error_log('BCM Delete Term Error: ' . $error_message);
             wp_send_json_error(['message' => $error_message]);
         }
         
@@ -349,16 +341,13 @@ class Ajax_Handler {
         $children_action = 'none';
         if (!empty($children) && !is_wp_error($children)) {
             $children_action = 'moved';
-            error_log('BCM Delete Term: Term has children that will be moved. Children IDs: ' . implode(', ', $children));
         }
         
         // Perform the deletion
         $result = wp_delete_term($term_id, $taxonomy);
-        error_log('BCM Delete Term Result: ' . print_r($result, true));
         
         if (!$result || is_wp_error($result)) {
             $message = is_wp_error($result) ? $result->get_error_message() : esc_html__('Failed to delete term.', 'better-category-manager');
-            error_log('BCM Delete Term Error: ' . $message);
             wp_send_json_error(['message' => $message]);
         }
         
@@ -375,7 +364,7 @@ class Ajax_Handler {
      */
     public function handle_update_term_hierarchy() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get data from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -400,7 +389,7 @@ class Ajax_Handler {
      */
     public function handle_generate_description() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get data from request
         $term_name = isset($_POST['term_name']) ? sanitize_text_field(wp_unslash($_POST['term_name'])) : '';
@@ -495,7 +484,7 @@ class Ajax_Handler {
      */
     public function handle_get_parent_terms() {
         // Verify nonce
-        $this->verify_nonce();
+        check_ajax_referer($this->nonce_key, 'nonce', false);
 
         // Get taxonomy from request - force 'category' for Better Category Manager
         $taxonomy = 'category';
@@ -505,15 +494,6 @@ class Ajax_Handler {
         $parent_dropdown = $this->get_parent_dropdown_html($taxonomy, $exclude);
         
         wp_send_json_success(['parent_dropdown' => $parent_dropdown]);
-    }
-    
-    /**
-     * Verify nonce for AJAX requests
-     */
-    private function verify_nonce() {
-        if (!check_ajax_referer($this->nonce_key, 'nonce', false)) {
-            wp_send_json_error(['message' => __('Security check failed.', 'better-category-manager')]);
-        }
     }
     
     /**

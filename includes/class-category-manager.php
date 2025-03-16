@@ -27,7 +27,7 @@ class Admin {
         // Use a late priority to ensure this runs after WordPress adds its default menus
         add_action('admin_menu', [$this, 'register_admin_menu'], 99);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
-        add_action('current_screen', [$this, 'set_current_category']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_menu_styles_scripts']);
     }
     
     /**
@@ -56,133 +56,17 @@ class Admin {
                 }
             }
         }
-        
-        // Add CSS to highlight the Categories menu item when our custom page is viewed
-        add_action('admin_head', function() {
-            // Only on our manager page
-            if (isset($_GET['page']) && $_GET['page'] === 'BCM-manager') {
-                ?>
-                <style>
-                /* Force the Posts menu to appear open and selected */
-                #menu-posts,
-                #menu-posts > a.wp-has-submenu {
-                    background-color: #2271b1 !important;
-                    color: #fff !important;
-                }
-                
-                #menu-posts.wp-not-current-submenu .wp-submenu {
-                    display: block !important;
-                }
-                
-                #menu-posts > a.wp-has-submenu:after {
-                    border-top-color: #fff !important;
-                }
-                
-                /* Force the submenu to be visible */
-                #menu-posts .wp-submenu {
-                    display: block !important;
-                    opacity: 1 !important;
-                    margin-left: 0 !important;
-                    top: 0 !important;
-                }
-                
-                /* Direct targeting by link content and href - from browser inspection */
-                #menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
-                    color: #fff !important;
-                    font-weight: 600 !important;
-                }
-                
-                /* Find the li containing the Categories link */
-                #menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
-                    background-color: rgba(0,0,0,0.1) !important;
-                }
-                
-                /* Adding highlighting to any li with .current class */
-                #menu-posts .wp-submenu li.current a {
-                    color: #fff !important;
-                    font-weight: 600 !important;
-                }
-                
-                #menu-posts .wp-submenu li.current {
-                    background-color: rgba(0,0,0,0.1) !important;
-                }
-                </style>
-                <script>
-                jQuery(document).ready(function($) {
-                    // First try - find directly by text content
-                    var categoryFound = false;
-                    
-                    // Get all submenu links in the Posts menu
-                    $('#menu-posts .wp-submenu li a').each(function() {
-                        // Check if the text contains "Categories"
-                        if ($(this).text().trim() === 'Categories') {
-                            // Add current class to the parent li
-                            $(this).parent().addClass('current');
-                            categoryFound = true;
-                        }
-                    });
-                    
-                    // Second try - find by href if not found by text
-                    if (!categoryFound) {
-                        $('#menu-posts .wp-submenu li a[href*="edit-tags.php?taxonomy=category"]').parent().addClass('current');
-                    }
-                    
-                    // Force the Posts menu to be highlighted
-                    $('#menu-posts').removeClass('wp-not-current-submenu').addClass('wp-has-current-submenu wp-menu-open');
-                    $('#menu-posts > a').removeClass('wp-not-current-submenu').addClass('wp-has-current-submenu');
-                });
-                </script>
-                <?php
-            }
-        });
     }
-
+    
     /**
      * Enqueue admin assets
      */
     public function enqueue_admin_assets($hook) {
-        // Enhanced check for our custom page
-        $is_our_page = false;
-        
-        // Check GET parameter directly, which is most reliable
-        if (isset($_GET['page']) && $_GET['page'] === 'BCM-manager') {
-            $is_our_page = true;
-        }
-        
+
         // Also check our direct access page
-        if ($hook === 'toplevel_page_BCM-direct') {
-            $is_our_page = true;
-        }
-        
-        // If not our page, don't load assets
-        if (!$is_our_page) {
+        if ($hook !== 'posts_page_BCM-manager') {
             return;
         }
-        
-        // Register a special style to ensure the admin page looks correct
-        wp_register_style(
-            'BCM-admin-fixes',
-            false
-        );
-        
-        // Add inline CSS to fix any styling issues
-        wp_add_inline_style('BCM-admin-fixes', '
-            /* Fix for admin page styling */
-            .wrap h1.wp-heading-inline {
-                display: inline-block;
-                margin-right: 5px;
-            }
-            
-            /* Fix for import/export controls */
-            .BCM-import-export-controls {
-                display: inline-block;
-                margin-left: 15px;
-                vertical-align: middle;
-            }
-        ');
-        
-        // Enqueue our admin style fixes
-        wp_enqueue_style('BCM-admin-fixes');
         
         // Enqueue CSS
         wp_enqueue_style(
@@ -290,17 +174,40 @@ class Admin {
     }
 
     /**
-     * Set current category based on request
+     * Enqueue menu-specific styles and scripts
+     * 
+     * @param string $hook The current admin page
      */
-    public function set_current_category() {
-        if (isset($_GET['category'])) {
-            $this->current_category = sanitize_text_field(wp_unslash($_GET['category']));
-        } else {
-            // Get default from settings
-            $settings = get_option('BCM_settings');
-            $this->current_category = isset($settings['default_category']) ? $settings['default_category'] : 'category';
+    public function enqueue_menu_styles_scripts($hook) {
+
+        // Also check our direct access page
+        if ($hook !== 'posts_page_BCM-manager') {
+            return;
         }
+        
+        // Get plugin directory URL for asset loading
+        $plugin_url = plugin_dir_url(dirname(__FILE__));
+        
+        // Register and enqueue menu highlight styles
+        wp_register_style(
+            'bcm-menu-highlight',
+            $plugin_url . 'assets/css/menu-highlight.css',
+            [],
+            BCM_VERSION
+        );
+        wp_enqueue_style('bcm-menu-highlight');
+        
+        // Register and enqueue menu highlight script
+        wp_register_script(
+            'bcm-menu-highlight',
+            $plugin_url . 'assets/js/menu-highlight.js',
+            ['jquery'],
+            BCM_VERSION,
+            true
+        );
+        wp_enqueue_script('bcm-menu-highlight');
     }
+
 
     /**
      * Get available taxonomies for editing

@@ -4,9 +4,9 @@ Contributors: gbti-network, Hudson Atwell
 Donate link: https://gbti.network/donate
 Tags: categories, category management, posts, blog organization
 Requires at least: 5.8
-Tested up to: 6.4
+Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.0.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
