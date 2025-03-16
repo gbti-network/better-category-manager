@@ -16,8 +16,8 @@ $current_category_name = $this->get_current_category();
 ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">
-            <?php echo esc_html(get_admin_page_title()); ?>
-            <?php if ($current_category): ?>
+            <?php echo esc_html__('Category Manager', 'better-category-manager'); ?>
+            <?php if ($current_category && $current_category->name !== 'category'): ?>
                 - <?php echo esc_html($current_category->labels->name); ?>
             <?php endif; ?>
         </h1>
@@ -30,10 +30,16 @@ $current_category_name = $this->get_current_category();
             <div class="BCM-import-wrapper">
                 <input type="file" id="BCM-import-file" accept=".json" style="display: none;">
                 <button type="button" class="page-title-action" id="BCM-import-taxonomies">
-                    <span class="dashicons dashicons-migrate"></span>
+                    <span class="dashicons dashicons-download"></span>
                     <?php esc_html_e('Import Terms','better-category-manager'); ?>
                 </button>
             </div>
+            <a href="<?php echo esc_url(admin_url('edit-tags.php?taxonomy=category')); ?>" class="page-title-action" title="<?php esc_attr_e('WordPress Native Categories', 'better-category-manager'); ?>">
+                <span class="dashicons dashicons-backup"></span>
+            </a>
+            <a href="<?php echo esc_url(admin_url('options-general.php?page=BCM-settings')); ?>" class="page-title-action" title="<?php esc_attr_e('Settings', 'better-category-manager'); ?>">
+                <span class="dashicons dashicons-admin-generic"></span>
+            </a>
         </div>
         <hr class="wp-header-end">
 
@@ -46,7 +52,7 @@ $current_category_name = $this->get_current_category();
             <div class="notice notice-warning is-dismissible">
                 <p>
                     <?php esc_html_e('OpenAI API key is not configured. Some features will be disabled.','better-category-manager'); ?>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=BCM-settings')); ?>">
+                    <a href="<?php echo esc_url(admin_url('options-general.php?page=BCM-settings')); ?>">
                         <?php esc_html_e('Configure now','better-category-manager'); ?>
                     </a>
                 </p>

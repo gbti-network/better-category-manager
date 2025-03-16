@@ -317,20 +317,57 @@ class Ajax_Handler {
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key($_POST['taxonomy']) : 'category';
+        $taxonomy = isset($_POST['category']) ? sanitize_key($_POST['category']) : 'category';
+        
+        // Log the incoming request data for debugging
+        error_log('BCM Delete Term Request: ' . print_r([
+            'term_id' => $term_id,
+            'taxonomy' => $taxonomy,
+            'post_data' => $_POST
+        ], true));
         
         if (!$term_id) {
-            wp_send_json_error(['message' => __('Invalid term ID.', 'better-category-manager')]);
+            wp_send_json_error(['message' => esc_html__('Invalid term ID.', 'better-category-manager')]);
         }
         
+        // Verify term exists before attempting to delete
+        $term = get_term($term_id, $taxonomy);
+        if (!$term || is_wp_error($term)) {
+            $error_message = is_wp_error($term) ? $term->get_error_message() : esc_html__('Term does not exist.', 'better-category-manager');
+            error_log('BCM Delete Term Error: ' . $error_message);
+            wp_send_json_error(['message' => $error_message]);
+        }
+        
+        // Check if term has children
+        $children = get_terms([
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+            'parent' => $term_id,
+            'fields' => 'ids'
+        ]);
+        
+        $children_action = 'none';
+        if (!empty($children) && !is_wp_error($children)) {
+            $children_action = 'moved';
+            error_log('BCM Delete Term: Term has children that will be moved. Children IDs: ' . implode(', ', $children));
+        }
+        
+        // Perform the deletion
         $result = wp_delete_term($term_id, $taxonomy);
+        error_log('BCM Delete Term Result: ' . print_r($result, true));
         
         if (!$result || is_wp_error($result)) {
-            $message = is_wp_error($result) ? $result->get_error_message() : __('Failed to delete term.', 'better-category-manager');
+            $message = is_wp_error($result) ? $result->get_error_message() : esc_html__('Failed to delete term.', 'better-category-manager');
+            error_log('BCM Delete Term Error: ' . $message);
             wp_send_json_error(['message' => $message]);
         }
         
-        wp_send_json_success(['message' => __('Term deleted successfully.', 'better-category-manager')]);
+        wp_send_json_success([
+            'message' => esc_html__('Term deleted successfully.', 'better-category-manager'),
+            'children_action' => $children_action,
+            'term_id' => $term_id,
+            'term_name' => $term->name
+        ]);
     }
 
     /**

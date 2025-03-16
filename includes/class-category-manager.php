@@ -24,34 +24,166 @@ class Admin {
      * Constructor
      */
     private function __construct() {
-        add_action('admin_menu', [$this, 'register_admin_menu']);
+        // Use a late priority to ensure this runs after WordPress adds its default menus
+        add_action('admin_menu', [$this, 'register_admin_menu'], 99);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
         add_action('current_screen', [$this, 'set_current_category']);
     }
-
+    
     /**
-     * Register admin menu items
+     * Register the admin menu and submenus
      */
     public function register_admin_menu() {
-        add_menu_page(
-            __('Category Manager','better-category-manager'),
-            __('Category Manager','better-category-manager'),
-            'manage_options',
+        // Add a hidden page for the manager that's accessible via edit.php?page=BCM-manager
+        add_submenu_page(
+            null,
+            esc_html__('Category Manager', 'better-category-manager'),
+            esc_html__('Category Manager', 'better-category-manager'),
+            'manage_categories',
             'BCM-manager',
-            [$this, 'render_admin_page'],
-            'dashicons-category',
-            26
+            [$this, 'render_admin_page']
         );
+
+        // Use the global $submenu variable to replace the native categories menu link
+        global $submenu;
+        if (isset($submenu['edit.php'])) {
+            // Find the categories submenu item by checking the slug (third element in array)
+            foreach ($submenu['edit.php'] as $key => $item) {
+                if (isset($item[2]) && $item[2] === 'edit-tags.php?taxonomy=category') {
+                    // Replace the URL with our custom page
+                    $submenu['edit.php'][$key][2] = 'edit.php?page=BCM-manager';
+                    break;
+                }
+            }
+        }
+        
+        // Add CSS to highlight the Categories menu item when our custom page is viewed
+        add_action('admin_head', function() {
+            // Only on our manager page
+            if (isset($_GET['page']) && $_GET['page'] === 'BCM-manager') {
+                ?>
+                <style>
+                /* Force the Posts menu to appear open and selected */
+                #menu-posts,
+                #menu-posts > a.wp-has-submenu {
+                    background-color: #2271b1 !important;
+                    color: #fff !important;
+                }
+                
+                #menu-posts.wp-not-current-submenu .wp-submenu {
+                    display: block !important;
+                }
+                
+                #menu-posts > a.wp-has-submenu:after {
+                    border-top-color: #fff !important;
+                }
+                
+                /* Force the submenu to be visible */
+                #menu-posts .wp-submenu {
+                    display: block !important;
+                    opacity: 1 !important;
+                    margin-left: 0 !important;
+                    top: 0 !important;
+                }
+                
+                /* Direct targeting by link content and href - from browser inspection */
+                #menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
+                    color: #fff !important;
+                    font-weight: 600 !important;
+                }
+                
+                /* Find the li containing the Categories link */
+                #menu-posts .wp-submenu li a[href$="edit-tags.php?taxonomy=category"] {
+                    background-color: rgba(0,0,0,0.1) !important;
+                }
+                
+                /* Adding highlighting to any li with .current class */
+                #menu-posts .wp-submenu li.current a {
+                    color: #fff !important;
+                    font-weight: 600 !important;
+                }
+                
+                #menu-posts .wp-submenu li.current {
+                    background-color: rgba(0,0,0,0.1) !important;
+                }
+                </style>
+                <script>
+                jQuery(document).ready(function($) {
+                    // First try - find directly by text content
+                    var categoryFound = false;
+                    
+                    // Get all submenu links in the Posts menu
+                    $('#menu-posts .wp-submenu li a').each(function() {
+                        // Check if the text contains "Categories"
+                        if ($(this).text().trim() === 'Categories') {
+                            // Add current class to the parent li
+                            $(this).parent().addClass('current');
+                            categoryFound = true;
+                        }
+                    });
+                    
+                    // Second try - find by href if not found by text
+                    if (!categoryFound) {
+                        $('#menu-posts .wp-submenu li a[href*="edit-tags.php?taxonomy=category"]').parent().addClass('current');
+                    }
+                    
+                    // Force the Posts menu to be highlighted
+                    $('#menu-posts').removeClass('wp-not-current-submenu').addClass('wp-has-current-submenu wp-menu-open');
+                    $('#menu-posts > a').removeClass('wp-not-current-submenu').addClass('wp-has-current-submenu');
+                });
+                </script>
+                <?php
+            }
+        });
     }
 
     /**
      * Enqueue admin assets
      */
     public function enqueue_admin_assets($hook) {
-        if ('toplevel_page_BCM-manager' !== $hook) {
+        // Enhanced check for our custom page
+        $is_our_page = false;
+        
+        // Check GET parameter directly, which is most reliable
+        if (isset($_GET['page']) && $_GET['page'] === 'BCM-manager') {
+            $is_our_page = true;
+        }
+        
+        // Also check our direct access page
+        if ($hook === 'toplevel_page_BCM-direct') {
+            $is_our_page = true;
+        }
+        
+        // If not our page, don't load assets
+        if (!$is_our_page) {
             return;
         }
-
+        
+        // Register a special style to ensure the admin page looks correct
+        wp_register_style(
+            'BCM-admin-fixes',
+            false
+        );
+        
+        // Add inline CSS to fix any styling issues
+        wp_add_inline_style('BCM-admin-fixes', '
+            /* Fix for admin page styling */
+            .wrap h1.wp-heading-inline {
+                display: inline-block;
+                margin-right: 5px;
+            }
+            
+            /* Fix for import/export controls */
+            .BCM-import-export-controls {
+                display: inline-block;
+                margin-left: 15px;
+                vertical-align: middle;
+            }
+        ');
+        
+        // Enqueue our admin style fixes
+        wp_enqueue_style('BCM-admin-fixes');
+        
         // Enqueue CSS
         wp_enqueue_style(
             'BCM-admin-style',
@@ -71,7 +203,7 @@ class Admin {
         wp_enqueue_style(
             'BCM-loader',
             BCM_ASSETS_URL . 'css/loader.css',
-            array(),
+            [],
             BCM_VERSION
         );
 
@@ -91,6 +223,9 @@ class Admin {
             BCM_VERSION,
             true
         );
+
+        // Ensure jQuery UI Sortable is loaded
+        wp_enqueue_script('jquery-ui-sortable');
 
         // Enqueue JavaScript with wp-util dependency
         wp_enqueue_script(
@@ -142,6 +277,11 @@ class Admin {
                 'unsaved_changes' => esc_html__('There are unsaved changes. Do you want to discard them?', 'better-category-manager'),
                 'term_updated' => esc_html__('Term updated successfully.', 'better-category-manager'),
                 'delete_error' => esc_html__('Error deleting term.', 'better-category-manager'),
+                'delete_failed' => esc_html__('Failed to delete category.', 'better-category-manager'),
+                'term_deleted' => esc_html__('has been deleted', 'better-category-manager'),
+                'delete_term' => esc_html__('Delete this term', 'better-category-manager'),
+                'click_confirm_delete' => esc_html__('Click again to confirm deletion', 'better-category-manager'),
+                'confirm_deletion' => esc_html__('Confirm Deletion', 'better-category-manager'),
                 'generate_error' => esc_html__('Error generating description.', 'better-category-manager'),
                 'api_key_missing' => esc_html__('OpenAI API key is not configured. Please configure it in the settings.', 'better-category-manager'),
                 'hierarchy_update_error' => esc_html__('Error updating term hierarchy.', 'better-category-manager')

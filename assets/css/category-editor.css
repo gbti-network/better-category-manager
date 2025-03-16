@@ -220,6 +220,42 @@
     margin-top: 3px;
 }
 
+/* Delete button styles */
+.BCM-quick-delete {
+    color: #cc1818;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.BCM-quick-delete:hover {
+    color: #dc3232;
+}
+
+.BCM-quick-delete.confirm-delete {
+    background-color: #fbe9e7;
+    color: #cc1818;
+    animation: pulse 1.5s infinite;
+    padding: 0 8px;
+}
+
+.BCM-quick-delete.confirm-delete:hover {
+    background-color: #e21818;
+    color: #ffffff;
+}
+
+.BCM-quick-delete .confirm-text {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
 /* Drag and Drop States */
 .BCM-term-row.is-dragging {
     opacity: 0.7;

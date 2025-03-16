@@ -8,7 +8,7 @@ class OpenAI_Integration {
     private static $instance = null;
     private $api_key = null;
     private $api_base_url = 'https://api.openai.com/v1';
-    private $default_model = 'gpt-3.5-turbo';
+    private $model = 'gpt-3.5-turbo';
 
     /**
      * Get singleton instance
@@ -26,6 +26,7 @@ class OpenAI_Integration {
     private function __construct() {
         $settings = Settings::get_instance();
         $this->api_key = $settings->get_openai_api_key();
+        $this->model = $settings->get_openai_model();
     }
 
     /**
@@ -48,7 +49,7 @@ class OpenAI_Integration {
         ];
 
         $response = $this->make_api_request('chat/completions', [
-            'model' => $this->default_model,
+            'model' => $this->model,
             'messages' => $messages,
             'temperature' => 0.7,
             'max_tokens' => 150,

@@ -78,7 +78,7 @@ class BCM_Plugin {
     }
 
     public function add_plugin_action_links($links) {
-        $settings_link = '<a href="' . admin_url('admin.php?page=BCM-settings') . '">' . __('Settings', 'better-category-manager') . '</a>';
+        $settings_link = '<a href="' . admin_url('admin.php?page=BCM-settings') . '">' . esc_html__('Settings', 'better-category-manager') . '</a>';
         array_unshift($links, $settings_link);
         return $links;
     }

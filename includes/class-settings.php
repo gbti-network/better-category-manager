@@ -89,7 +89,33 @@ class Settings {
             'general',
             [
                 'label_for' => 'openai_api_key',
-                'description' => esc_html__('Your OpenAI API key for generating term descriptions.', 'better-category-manager')
+                'description' => sprintf(
+                    esc_html__('Your OpenAI API key for generating term descriptions. %sGet your API key here%s.', 'better-category-manager'),
+                    '<a href="https://platform.openai.com/api-keys" target="_blank">',
+                    '</a>'
+                )
+            ]
+        );
+
+        // OpenAI Model
+        add_settings_field(
+            'openai_model',
+            esc_html__('OpenAI Model', 'better-category-manager'),
+            [$this, 'render_select_field'],
+            $this->settings_page,
+            'general',
+            [
+                'label_for' => 'openai_model',
+                'description' => sprintf(
+                    esc_html__('Select the OpenAI model to use for generating term descriptions. %sView OpenAI pricing and available models%s', 'better-category-manager'),
+                    '<a href="https://platform.openai.com/docs/pricing" target="_blank">',
+                    '</a>'
+                ),
+                'options' => [
+                    'gpt-3.5-turbo' => esc_html__('GPT-3.5 Turbo (Decent Performance, Low Cost)', 'better-category-manager'),
+                    'gpt-4o-mini' => esc_html__('GPT-4o Mini (Better Performance, Low-Moderate Cost)', 'better-category-manager'),
+                    'gpt-4o' => esc_html__('GPT-4o (Best Performance, Low-Moderate Cost)', 'better-category-manager')
+                ]
             ]
         );
 
@@ -112,9 +138,9 @@ class Settings {
      */
     public function add_settings_page() {
         add_submenu_page(
-            'BCM-manager',
-            esc_html__('Settings', 'better-category-manager'),
-            esc_html__('Settings', 'better-category-manager'),
+            'options-general.php',
+            esc_html__('Category Manager', 'better-category-manager'),
+            esc_html__('Category Manager', 'better-category-manager'),
             'manage_options',
             $this->settings_page,
             [$this, 'render_settings_page']
@@ -125,7 +151,7 @@ class Settings {
      * Enqueue scripts and styles for the settings page
      */
     public function enqueue_settings_assets($hook) {
-        if ($hook !== 'category-manager_page_BCM-settings') {
+        if ($hook !== 'settings_page_BCM-settings') {
             return;
         }
 
@@ -316,11 +342,54 @@ class Settings {
         $settings = get_option($this->option_name, $this->get_default_settings());
         $value = isset($settings[$option_name]) ? $settings[$option_name] : '';
         ?>
-        <input type="password" id="<?php echo esc_attr($option_name); ?>" 
-               name="<?php echo esc_attr($this->option_name); ?>[<?php echo esc_attr($option_name); ?>]" 
-               value="<?php echo esc_attr($value); ?>" class="regular-text">
+        <input type="password" 
+               id="<?php echo esc_attr($option_name); ?>" 
+               name="<?php echo esc_attr($this->option_name); ?>[<?php echo esc_attr($option_name); ?>]"
+               value="<?php echo esc_attr($value); ?>"
+               class="regular-text"
+               autocomplete="off">
+        <button type="button" class="button" id="validate-api-key">
+            <?php esc_html_e('Validate Key', 'better-category-manager'); ?>
+        </button>
+        <span id="api-key-validation-result"></span>
         <?php if (!empty($description)) : ?>
-            <p class="description"><?php echo esc_html($description); ?></p>
+            <p class="description"><?php echo wp_kses($description, [
+                'a' => [
+                    'href' => [],
+                    'target' => [],
+                    'rel' => []
+                ]
+            ]); ?></p>
+        <?php endif; ?>
+        <?php
+    }
+
+    /**
+     * Render select field
+     */
+    public function render_select_field($args) {
+        $option_name = $args['label_for'];
+        $description = $args['description'] ?? '';
+        $options = $args['options'] ?? [];
+        $settings = get_option($this->option_name, $this->get_default_settings());
+        $value = isset($settings[$option_name]) ? $settings[$option_name] : '';
+        ?>
+        <select id="<?php echo esc_attr($option_name); ?>" 
+                name="<?php echo esc_attr($this->option_name); ?>[<?php echo esc_attr($option_name); ?>]">
+            <?php foreach ($options as $key => $label) : ?>
+                <option value="<?php echo esc_attr($key); ?>" <?php selected($key, $value); ?>>
+                    <?php echo esc_html($label); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+        <?php if (!empty($description)) : ?>
+            <p class="description"><?php echo wp_kses($description, [
+                'a' => [
+                    'href' => [],
+                    'target' => [],
+                    'rel' => []
+                ]
+            ]); ?></p>
         <?php endif; ?>
         <?php
     }
@@ -362,9 +431,10 @@ class Settings {
      */
     public function get_default_settings() {
         return [
-            'show_post_counts' => 1,
+            'show_post_counts' => true,
             'openai_api_key' => '',
-            'default_ai_prompt' => esc_html__('Write a clear and concise description for the [TERM_NAME] category, explaining its purpose and how it helps organize content.', 'better-category-manager')
+            'openai_model' => 'gpt-3.5-turbo',
+            'default_ai_prompt' => $this->get_default_ai_prompt()
         ];
     }
 
@@ -375,8 +445,9 @@ class Settings {
         $sanitized = [];
         
         // Boolean settings
-        $sanitized['show_post_counts'] = isset($input['show_post_counts']) ? (bool) $input['show_post_counts'] : 1;
+        $sanitized['show_post_counts'] = isset($input['show_post_counts']) ? (bool) $input['show_post_counts'] : true;
         $sanitized['openai_api_key'] = sanitize_text_field($input['openai_api_key']);
+        $sanitized['openai_model'] = sanitize_text_field($input['openai_model']);
         $sanitized['default_ai_prompt'] = sanitize_text_field($input['default_ai_prompt']);
         
         return $sanitized;
@@ -391,11 +462,26 @@ class Settings {
     }
 
     /**
+     * Get OpenAI model
+     */
+    public function get_openai_model() {
+        $settings = get_option($this->option_name, $this->get_default_settings());
+        return isset($settings['openai_model']) ? $settings['openai_model'] : 'gpt-3.5-turbo';
+    }
+
+    /**
      * Get default AI prompt
      */
     public function get_default_ai_prompt() {
-        $settings = get_option($this->option_name, $this->get_default_settings());
-        return isset($settings['default_ai_prompt']) ? $settings['default_ai_prompt'] : $this->get_default_settings()['default_ai_prompt'];
+        $settings = get_option($this->option_name);
+        
+        // Return from settings if exists
+        if ($settings && isset($settings['default_ai_prompt'])) {
+            return $settings['default_ai_prompt'];
+        }
+        
+        // Default value when not yet set in options
+        return esc_html__('Write a clear and concise description for the [TERM_NAME] category, explaining its purpose and how it helps organize content.', 'better-category-manager');
     }
 
     /**
@@ -426,7 +512,7 @@ class Settings {
 
     public function should_show_count() {
         $settings = get_option($this->option_name, $this->get_default_settings());
-        return isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : 1;
+        return isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : true;
     }
 
     /**
@@ -435,30 +521,10 @@ class Settings {
     public function check_openai_api_key() {
         // Only show on our settings page
         $screen = get_current_screen();
-        if (!$screen || $screen->id !== 'category-manager_page_' . $this->settings_page) {
+        if (!$screen || $screen->id !== 'settings_page_' . $this->settings_page) {
             return;
         }
 
-        // Check if we have a newly saved API key
-        if (isset($_GET['settings-updated']) && $_GET['settings-updated'] === 'true') {
-            $api_key = $this->get_openai_api_key();
-            
-            // Only show notice if an API key is provided
-            if (!empty($api_key)) {
-                // Store the notice in a transient to be displayed after redirect
-                set_transient('bcm_api_key_notice', true, 30);
-            }
-        }
-
-        // Check for the transient and display notice
-        if (get_transient('bcm_api_key_notice')) {
-            delete_transient('bcm_api_key_notice');
-            ?>
-            <div class="notice notice-success is-dismissible">
-                <p><?php echo esc_html__('Settings saved. OpenAI API key has been updated. The key will be validated when the page finishes loading.', 'better-category-manager'); ?></p>
-            </div>
-            <?php
-        }
     }
 
     /**
@@ -488,7 +554,7 @@ class Settings {
                 'Content-Type' => 'application/json',
             ],
             'body' => wp_json_encode([
-                'model' => 'gpt-3.5-turbo',
+                'model' => $this->get_openai_model(),
                 'messages' => [
                     [
                         'role' => 'system',

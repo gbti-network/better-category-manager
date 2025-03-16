@@ -168,6 +168,54 @@
                     this.loadTermData(termId);
                 });
 
+                // Delete term with confirmation
+                this.elements.termsTree.on('click', '.BCM-quick-delete', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Make sure we get the actual button even if the icon or text was clicked
+                    const button = $(e.target).hasClass('BCM-quick-delete') 
+                        ? $(e.target) 
+                        : $(e.target).closest('.BCM-quick-delete');
+                        
+                    const termRow = button.closest('.BCM-term-row');
+                    const termId = termRow.data('id');
+                    const termName = termRow.find('.BCM-term-name').text().trim();
+                    
+                    // Debug the selected elements
+                    console.log('Delete button clicked for:', {
+                        termId: termId,
+                        termName: termName,
+                        isConfirmMode: button.hasClass('confirm-delete')
+                    });
+                    
+                    // If already in confirmation mode
+                    if (button.hasClass('confirm-delete')) {
+                        // Perform delete
+                        this.deleteTermById(termId, termName);
+                    } else {
+                        // Enter confirmation mode
+                        button.addClass('confirm-delete');
+                        button.attr('title', BCMAdmin.i18n.click_confirm_delete || 'Click again to confirm deletion');
+                        button.find('.dashicons').removeClass('dashicons-trash').addClass('dashicons-warning');
+                        
+                        // Add confirm text
+                        if (!button.find('.confirm-text').length) {
+                            button.append('<span class="confirm-text">' + (BCMAdmin.i18n.confirm_deletion || 'Confirm Deletion') + '</span>');
+                        }
+                        
+                        // Reset after 3 seconds
+                        setTimeout(() => {
+                            if (button.hasClass('confirm-delete')) {
+                                button.removeClass('confirm-delete');
+                                button.attr('title', BCMAdmin.i18n.delete_term || 'Delete this term');
+                                button.find('.dashicons').removeClass('dashicons-warning').addClass('dashicons-trash');
+                                button.find('.confirm-text').remove();
+                            }
+                        }, 3000);
+                    }
+                });
+
                 // Close editor
                 this.elements.closeEditorBtn.on('click', () => {
                     if (this.state.hasUnsavedChanges) {
@@ -324,7 +372,8 @@
                         name: term.name,
                         count: term.count || 0,
                         hasChildren: hasChildren,
-                        parent: term.parent
+                        parent: term.parent,
+                        canDelete: true
                     });
 
                     const li = $('<li></li>').html(termHtml);
@@ -960,6 +1009,90 @@ console.log(window.BCMAdmin)
                 },
                 error: () => {
                     this.showError(BCMAdmin.i18n.delete_error);
+                },
+                complete: () => {
+                    this.setLoading(false);
+                }
+            });
+        }
+
+        /**
+         * Delete a term by ID
+         * 
+         * @param {number} termId - ID of the term to delete
+         * @param {string} termName - Name of the term for notification
+         */
+        deleteTermById(termId, termName) {
+            if (!termId) {
+                console.error('Cannot delete term: Invalid term ID');
+                this.showError(BCMAdmin.i18n.delete_failed || 'Failed to delete term: Invalid ID');
+                return;
+            }
+            
+            console.log('Deleting term:', { termId, taxonomy: this.state.currentCategory });
+            this.setLoading(true);
+            
+            $.ajax({
+                url: BCMAdmin.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'BCM_delete_term',
+                    term_id: termId,
+                    category: this.state.currentCategory,
+                    nonce: BCMAdmin.nonce
+                },
+                dataType: 'json',
+                success: (response) => {
+                    console.log('Delete term response:', response);
+                    
+                    if (response.success) {
+                        // Remove the term from the UI
+                        const termRow = this.elements.termsTree.find(`.BCM-term-row[data-id="${termId}"]`);
+                        if (!termRow.length) {
+                            console.error('Could not find term row to delete with ID:', termId);
+                            // Reload the full tree to ensure the UI is in sync
+                            this.loadTerms();
+                            this.showNotification(`${termName} ${BCMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
+                            return;
+                        }
+                        
+                        // Check if it's a parent or child term and remove appropriately
+                        const parentLi = termRow.closest('li');
+                        const childrenList = termRow.next('.BCM-term-list');
+                        const hasChildren = childrenList.length > 0 && childrenList.children().length > 0;
+                        
+                        console.log('Term UI structure:', {
+                            hasParentLi: parentLi.length > 0,
+                            hasChildren: hasChildren,
+                            childrenAction: response.data?.children_action
+                        });
+                        
+                        // If term has children or we need a full refresh
+                        if (hasChildren || (response.data && response.data.children_action === 'moved')) {
+                            // Refresh the entire tree to show the new structure
+                            this.loadTerms();
+                        } else {
+                            // Just remove this term node
+                            if (parentLi.length) {
+                                parentLi.remove();
+                            } else {
+                                termRow.remove();
+                            }
+                        }
+                        
+                        this.showNotification(`${termName} ${BCMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
+                    } else {
+                        console.error('Server returned error when deleting term:', response.data?.message);
+                        this.showError(response.data?.message || BCMAdmin.i18n.delete_failed || 'Failed to delete term.');
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error('AJAX error when deleting term:', {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
+                    this.showError(`${BCMAdmin.i18n.delete_failed || 'Failed to delete term'}: ${error}`);
                 },
                 complete: () => {
                     this.setLoading(false);

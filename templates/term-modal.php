@@ -40,18 +40,16 @@ if (!defined('ABSPATH')) {
 
             <!-- Term Actions -->
             <div class="BCM-term-actions">
-                <button type="button" class="button BCM-edit-term"
-                        title="<?php esc_attr_e('Edit this term','better-category-manager'); ?>">
-                    <span class="screen-reader-text"><?php esc_html_e('Edit','better-category-manager'); ?></span>
-                    <span class="dashicons dashicons-edit"></span>
-                </button>
-                <# if (data.canDelete) { #>
                 <button type="button" class="button BCM-quick-delete"
                         title="<?php esc_attr_e('Delete this term','better-category-manager'); ?>">
                     <span class="screen-reader-text"><?php esc_html_e('Delete','better-category-manager'); ?></span>
                     <span class="dashicons dashicons-trash"></span>
                 </button>
-                <# } #>
+                <button type="button" class="button BCM-edit-term"
+                        title="<?php esc_attr_e('Edit this term','better-category-manager'); ?>">
+                    <span class="screen-reader-text"><?php esc_html_e('Edit','better-category-manager'); ?></span>
+                    <span class="dashicons dashicons-edit"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -145,12 +143,10 @@ if (!defined('ABSPATH')) {
 
         <!-- Form Actions -->
         <div class="BCM-form-actions">
-            <# if (data.id && data.canDelete) { #>
             <button type="button" class="button button-link-delete BCM-delete-term">
                 <span class="dashicons dashicons-trash"></span>
                 <?php esc_html_e('Delete','better-category-manager'); ?>
             </button>
-            <# } #>
 
             <button type="button" class="button BCM-cancel-edit">
                 <?php esc_html_e('Cancel','better-category-manager'); ?>
