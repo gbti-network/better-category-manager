@@ -34,9 +34,9 @@ const rl = readline.createInterface({
  * @param {string} command The command to execute
  * @returns {string} Command output
  */
-function execGitCommand(command) {
+function execGitCommand(command, options = {}) {
     try {
-        return execSync(command, { cwd: rootDir, encoding: 'utf8' });
+        return execSync(command, { cwd: rootDir, encoding: 'utf8', ...options });
     } catch (error) {
         console.error(`Git command failed: ${command}`);
         throw error;
@@ -370,9 +370,21 @@ async function release(releaseType) {
                 execGitCommand(`git add -A`);
                 execGitCommand(`git commit -m "Bump version to ${newVersion}"`);
                 
-                // Create tag
+                // Create tag if it doesn't exist
                 console.log(`\n🏷️ Creating tag v${newVersion}...`);
-                execGitCommand(`git tag -a v${newVersion} -m "Version ${newVersion}"`);
+                try {
+                    // Check if tag exists
+                    const tagExists = execGitCommand(`git tag -l v${newVersion}`, { silent: true }).trim() === `v${newVersion}`;
+                    
+                    if (!tagExists) {
+                        execGitCommand(`git tag -a v${newVersion} -m "Version ${newVersion}"`);
+                    } else {
+                        console.log(`Tag v${newVersion} already exists, skipping tag creation.`);
+                    }
+                } catch (error) {
+                    console.log(`Warning: ${error.message}`);
+                    console.log(`Continuing with existing tag v${newVersion}...`);
+                }
                 
                 // Push changes
                 console.log('\n🚀 Pushing changes to remote...');
