@@ -279,7 +279,38 @@ async function release() {
             
             // Build the plugin
             console.log('\nBuilding plugin...');
-            const zipPath = await build();
+            
+            // Promisify the build function since it uses callbacks
+            const buildPromise = () => {
+                return new Promise((resolve, reject) => {
+                    build((err, zipPath) => {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        resolve(zipPath);
+                    });
+                });
+            };
+            
+            // Get the zip path from the build process
+            let zipPath = await buildPromise();
+            
+            if (!zipPath) {
+                console.log('Warning: No zip file was created during build process.');
+                
+                // Try to find the zip file manually based on version
+                const distDir = path.join(rootDir, 'dist');
+                const zipFileName = `better-category-manager-${newVersion}.zip`;
+                const manualZipPath = path.join(distDir, zipFileName);
+                
+                if (fs.existsSync(manualZipPath)) {
+                    console.log(`Found zip file manually: ${manualZipPath}`);
+                    zipPath = manualZipPath;
+                } else {
+                    console.warn('Could not find zip file for release. GitHub release may fail.');
+                }
+            }
             
             // Create GitHub release if selected
             if (selectedPlatforms.includes('github')) {

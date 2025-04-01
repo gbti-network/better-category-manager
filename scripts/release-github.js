@@ -318,6 +318,18 @@ module.exports = {
         try {
             console.log('Creating GitHub release...');
 
+            // Validate zip path
+            if (!zipPath) {
+                throw new Error('No zip file path provided for GitHub release');
+            }
+
+            // Check if zip file exists
+            try {
+                await fs.promises.access(zipPath, fs.constants.F_OK);
+            } catch (error) {
+                throw new Error(`Zip file not found at path: ${zipPath}`);
+            }
+
             // Initialize repository if needed
             await initializeRepository();
 
