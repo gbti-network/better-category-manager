@@ -18,7 +18,7 @@ const config = {
     distDir: path.resolve(__dirname, '../dist'),
     mainFile: path.resolve(__dirname, '../better-category-manager.php'),
     readmeFile: path.resolve(__dirname, '../readme.txt'),
-    svnDir: path.resolve(__dirname, '../.svn-repo'),
+    svnDir: path.resolve(__dirname, '../svn'),
     maxOldBuilds: 3, // Maximum number of old builds to keep
     exclude: [
         // Git and SVN
@@ -26,13 +26,15 @@ const config = {
         '.git/**',
         '.svn',
         '.svn/**',
-        '.svn-repo',
-        '.svn-repo/**',
+        'svn',
+        'svn/**',
         // Development files
         'node_modules',
         'node_modules/**',
         'scripts',
         'scripts/**',
+        '.scripts',
+        '.scripts/**',
         // Project files
         '.product',
         '.product/**',
@@ -245,7 +247,7 @@ function copyFiles(callback, silent) {
         const svnAssetsDir = path.join(config.svnDir, 'assets');
         if (fs.existsSync(svnAssetsDir)) {
             console.log(' Preserving SVN assets directory...');
-            const assetsBackupDir = path.join(config.buildDir, '_assets_backup');
+            const assetsBackupDir = path.join(os.tmpdir(), `${config.pluginSlug}_assets_backup`);
             fs.copySync(svnAssetsDir, assetsBackupDir);
         }
 
@@ -260,7 +262,7 @@ function copyFiles(callback, silent) {
  * Restore SVN assets if they were backed up
  */
 function restoreSvnAssets(silent) {
-    const assetsBackupDir = path.join(config.buildDir, '_assets_backup');
+    const assetsBackupDir = path.join(os.tmpdir(), `${config.pluginSlug}_assets_backup`);
     const svnAssetsDir = path.join(config.svnDir, 'assets');
     
     if (fs.existsSync(assetsBackupDir)) {
@@ -1100,6 +1102,19 @@ if (require.main === module) {
                 action: action
             });
         } 
+        else if (action === 'build-only') {
+            console.log('\n Building distribution files only...');
+            build(function(err, zipPath) {
+                if (err) {
+                    console.error(' Build failed:', err.message);
+                    process.exit(1);
+                } else {
+                    console.log(' Build completed successfully!');
+                    console.log(` Zip file created: ${zipPath}`);
+                    process.exit(0);
+                }
+            }, { skipRelease: true, skipVersionPrompt: true });
+        }
         else {
             switch (action) {
                 case 'test':

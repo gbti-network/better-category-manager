@@ -12,7 +12,7 @@ const rootDir = path.resolve(__dirname, '..');
 const config = {
     pluginSlug: 'better-category-manager',
     svnUrl: 'https://plugins.svn.wordpress.org/better-category-manager/',
-    svnDir: path.join(rootDir, '.svn-repo'),
+    svnDir: path.join(rootDir, 'svn'),
     pluginFile: path.join(rootDir, 'better-category-manager.php'),
     readmeFile: path.join(rootDir, 'readme.txt'),
     buildDir: path.join(rootDir, 'build'),
@@ -59,11 +59,30 @@ function getCurrentVersion() {
 }
 
 /**
- * Check if SVN repository is already checked out
- * @returns {boolean} True if SVN repo exists
+ * Check if SVN repository is checked out
+ * @returns {boolean} True if SVN repository is checked out
  */
 function isSvnRepoCheckedOut() {
     return fs.existsSync(path.join(config.svnDir, '.svn'));
+}
+
+/**
+ * Initialize SVN directory structure
+ * @returns {Promise<void>}
+ */
+async function initializeSvnStructure() {
+    // Create the SVN directory if it doesn't exist
+    if (!fs.existsSync(config.svnDir)) {
+        console.log('Creating SVN directory structure...');
+        fs.ensureDirSync(config.svnDir);
+        
+        // Create the standard SVN directories
+        fs.ensureDirSync(path.join(config.svnDir, 'trunk'));
+        fs.ensureDirSync(path.join(config.svnDir, 'tags'));
+        fs.ensureDirSync(path.join(config.svnDir, 'assets'));
+        
+        console.log('✅ SVN directory structure created');
+    }
 }
 
 /**
@@ -72,6 +91,9 @@ function isSvnRepoCheckedOut() {
  */
 async function checkoutSvnRepo() {
     console.log('\n🔄 Checking out WordPress SVN repository...');
+    
+    // Initialize SVN directory structure
+    await initializeSvnStructure();
     
     if (isSvnRepoCheckedOut()) {
         console.log('SVN repository already exists, updating...');
@@ -149,14 +171,24 @@ async function copyBuildToSvnTrunk() {
     }
     
     const svnTrunkDir = path.join(config.svnDir, 'trunk');
+    const pluginBuildDir = path.join(config.buildDir, config.pluginSlug);
     
-    // Copy all files from build directory to SVN trunk
-    await fs.copy(config.buildDir, svnTrunkDir, {
+    // Ensure the plugin build directory exists
+    if (!fs.existsSync(pluginBuildDir)) {
+        throw new Error(`Plugin build directory not found: ${pluginBuildDir}`);
+    }
+    
+    // Copy all files from plugin build directory to SVN trunk
+    await fs.copy(pluginBuildDir, svnTrunkDir, {
         filter: (src) => {
-            const relativePath = path.relative(config.buildDir, src);
-            // Skip .git and other VCS directories
+            const relativePath = path.relative(pluginBuildDir, src);
+            
+            // Skip VCS directories and development folders
             return !relativePath.includes('.git') && 
-                   !relativePath.includes('.svn');
+                   !relativePath.includes('.svn') &&
+                   !relativePath.includes('.scripts') &&
+                   !relativePath.includes('.product') &&
+                   !relativePath.includes('svn');
         }
     });
     

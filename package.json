@@ -3,18 +3,20 @@
   "version": "1.0.1",
   "description": "A powerful WordPress plugin for advanced category management",
   "scripts": {
-    "commit": "node scripts/build.js --commit",
-    "build": "node scripts/build.js",
+    "build": "node scripts/build.js --build-only",
+    "build:zip": "node scripts/build.js",
     "release": "node scripts/release.js",
-    "release:github": "node scripts/build.js --release",
-    "release:svn": "node scripts/build.js --svn",
-    "release:both": "node scripts/build.js --both",
+    "release:github": "node scripts/release.js --github",
+    "release:svn": "node scripts/release.js --svn",
+    "release:both": "node scripts/release.js --both",
     "test": "node scripts/build.js --test",
     "test:github": "node scripts/build.js --test --github",
     "test:svn": "node scripts/build.js --test --svn",
     "test:versions": "node scripts/test-versions.js",
     "test:all": "node scripts/build.js --test --github --svn --versions",
-    "translate": "cd scripts && npm run translate"
+    "translate": "cd scripts && npm run translate",
+    "svn-tags": "node scripts/svn-tag-manager.js",
+    "delete-tag": "node scripts/delete-tag.js"
   },
   "author": "GBTI Labs",
   "license": "GPL-2.0-or-later"

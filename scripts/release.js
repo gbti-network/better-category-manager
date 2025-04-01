@@ -146,13 +146,20 @@ async function checkVersionConsistency(version) {
  * @returns {Promise<string>} Version type (patch/minor/major)
  */
 async function promptVersionType() {
-    const { type } = await inquirer.prompt([{
-        type: 'list',
-        name: 'type',
-        message: 'What type of release is this?',
-        choices: ['patch', 'minor', 'major']
-    }]);
-    return type;
+    const { versionType } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'versionType',
+            message: 'What type of version update is this?',
+            choices: [
+                { name: 'Patch (bug fixes)', value: 'patch' },
+                { name: 'Minor (new features, backwards compatible)', value: 'minor' },
+                { name: 'Major (breaking changes)', value: 'major' }
+            ]
+        }
+    ]);
+    
+    return versionType;
 }
 
 /**
@@ -162,17 +169,7 @@ async function promptVersionType() {
  * @returns {string} New version
  */
 function calculateNewVersion(currentVersion, type) {
-    const [major, minor, patch] = currentVersion.split('.').map(Number);
-    switch (type) {
-        case 'major':
-            return `${major + 1}.0.0`;
-        case 'minor':
-            return `${major}.${minor + 1}.0`;
-        case 'patch':
-            return `${major}.${minor}.${patch + 1}`;
-        default:
-            throw new Error('Invalid version type');
-    }
+    return semver.inc(currentVersion, type);
 }
 
 /**
@@ -272,130 +269,65 @@ async function restoreFromBackup() {
 
 /**
  * Main release function
+ * @param {string} releaseType - Type of release (github, svn, both, or undefined for interactive)
+ * @returns {Promise<void>}
  */
-async function release() {
+async function release(releaseType) {
     try {
+        // Validate environment
         validateEnvironment();
 
-        // Check current branch
-        const currentBranch = execGitCommand('git branch --show-current').trim();
-        if (currentBranch !== 'develop') {
-            console.warn('\n⚠️ WARNING: You are not on the develop branch!');
-            console.warn('The release process should start from the develop branch.');
-            
-            const { proceedAnyway } = await inquirer.prompt([{
-                type: 'confirm',
-                name: 'proceedAnyway',
-                message: 'Do you want to proceed anyway? (Not recommended)',
-                default: false
-            }]);
-            
-            if (!proceedAnyway) {
-                console.log('\nRelease process cancelled. Please switch to the develop branch with:');
-                console.log('  git checkout develop');
-                process.exit(0);
-            } else {
-                console.log('\n⚠️ Proceeding with release from non-develop branch. This may cause issues!');
-            }
+        // Check if we're in a git repository
+        try {
+            execGitCommand('git rev-parse --is-inside-work-tree');
+        } catch (error) {
+            console.error('❌ Not in a git repository. Please run this script from a git repository.');
+            process.exit(1);
         }
 
-        // First, synchronize all version references to ensure consistency
-        await versionManager.synchronizeVersions();
-        
+        // Get current version
         const currentVersion = await getCurrentVersion();
-        console.log(`Current version: ${currentVersion}`);
+        console.log(`\n🔄 Synchronizing all version references to ${currentVersion}...`);
         
-        // Prompt for release type
-        const { releaseType } = await inquirer.prompt([{
-            type: 'list',
-            name: 'releaseType',
-            message: 'What type of release is this?',
-            choices: [
-                { name: `patch (${currentVersion} -> ${semver.inc(currentVersion, 'patch')})`, value: 'patch' },
-                { name: `minor (${currentVersion} -> ${semver.inc(currentVersion, 'minor')})`, value: 'minor' },
-                { name: `major (${currentVersion} -> ${semver.inc(currentVersion, 'major')})`, value: 'major' },
-                { name: 'current (use current version)', value: 'current' }
-            ]
-        }]);
+        // Check version consistency
+        const consistentVersion = await checkVersionConsistency(currentVersion);
         
-        let newVersion = currentVersion;
-        if (releaseType !== 'current') {
-            // Calculate new version
-            newVersion = semver.inc(currentVersion, releaseType);
-            console.log(`New version will be: ${newVersion}`);
-            
-            // Confirm version
-            const { confirmVersion } = await inquirer.prompt([{
-                type: 'confirm',
-                name: 'confirmVersion',
-                message: `Are you sure you want to proceed with version ${newVersion}?`,
-                default: false
-            }]);
-            
-            if (!confirmVersion) {
-                console.log('\nRelease process cancelled');
-                process.exit(0);
-            }
-        } else {
-            console.log(`Using current version: ${currentVersion} (no increment)`);
-            
-            // Confirm using current version
-            const { confirmVersion } = await inquirer.prompt([{
-                type: 'confirm',
-                name: 'confirmVersion',
-                message: `Are you sure you want to proceed with current version ${currentVersion}?`,
-                default: false
-            }]);
-            
-            if (!confirmVersion) {
-                console.log('\nRelease process cancelled');
-                process.exit(0);
-            }
-        }
-        
-        // Check for changelog entry
-        const changelogEntry = await getChangelogEntry(newVersion);
-        if (!changelogEntry) {
-            throw new Error(`No changelog entry found for version ${newVersion}`);
-        }
-        
-        // Ask which platforms to release to
-        const { platforms } = await inquirer.prompt([{
-            type: 'checkbox',
-            name: 'platforms',
-            message: 'Select platforms to release to:',
-            choices: [
-                { name: 'GitHub', value: 'github', checked: true },
-                { name: 'WordPress.org SVN', value: 'svn', checked: true },
-                { name: 'Both (GitHub & WordPress.org SVN)', value: 'both', checked: false }
-            ],
-            validate: (answer) => {
-                if (answer.length < 1) {
-                    return 'You must choose at least one platform';
+        // Determine release type if not provided
+        let selectedReleaseType = releaseType;
+        if (!selectedReleaseType) {
+            const answers = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'releaseType',
+                    message: 'What type of release would you like to perform?',
+                    choices: [
+                        { name: 'Release to GitHub only', value: 'github' },
+                        { name: 'Release to WordPress.org SVN only', value: 'svn' },
+                        { name: 'Release to both GitHub and WordPress.org SVN', value: 'both' }
+                    ]
                 }
-                return true;
-            }
-        }]);
-        
-        // Process the 'both' option if selected
-        let selectedPlatforms = [...platforms];
-        if (platforms.includes('both')) {
-            // Remove 'both' and ensure both 'github' and 'svn' are included
-            selectedPlatforms = selectedPlatforms.filter(p => p !== 'both');
-            if (!selectedPlatforms.includes('github')) selectedPlatforms.push('github');
-            if (!selectedPlatforms.includes('svn')) selectedPlatforms.push('svn');
+            ]);
+            selectedReleaseType = answers.releaseType;
         }
+
+        // Prompt for version type
+        const versionType = await promptVersionType();
         
-        // Add final confirmation step before proceeding with the release
-        const { confirmFinal } = await inquirer.prompt([{
-            type: 'confirm',
-            name: 'confirmFinal',
-            message: `Ready to release version ${newVersion} to ${selectedPlatforms.join(', ')}?`,
-            default: false
-        }]);
+        // Calculate new version
+        const newVersion = calculateNewVersion(consistentVersion, versionType);
         
-        if (!confirmFinal) {
-            console.log('Release process cancelled by user.');
+        // Confirm version
+        const { confirmVersion } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'confirmVersion',
+                message: `Are you sure you want to release version ${newVersion}?`,
+                default: false
+            }
+        ]);
+        
+        if (!confirmVersion) {
+            console.log('Release cancelled.');
             process.exit(0);
         }
         
@@ -403,95 +335,90 @@ async function release() {
         await backupFiles();
         
         try {
-            // Update versions using the version manager
-            if (releaseType !== 'current') {
-                await versionManager.updateVersions(releaseType);
+            // Update version in all files
+            await versionManager.updateVersions(versionType, newVersion);
+            
+            // Get changelog entry
+            const changelog = await getChangelogEntry(newVersion);
+            
+            if (!changelog) {
+                console.error(`❌ No changelog entry found for version ${newVersion}. Please add one to .product/changelog.md`);
+                await restoreFromBackup();
+                process.exit(1);
             }
             
-            // Also update readme.txt if it exists
+            // Update readme.txt with new version and changelog
             await updateReadmeVersion(newVersion);
             
-            // Commit version changes
-            console.log('Committing version changes...');
-            try {
-                // Add all changed files first
-                execGitCommand('git add .');
-                
-                // Then commit the changes
-                execGitCommand(`git commit -m "chore: bump version to ${newVersion}"`);
-                
-                // Push to develop branch
-                execGitCommand('git push origin develop');
-            } catch (error) {
-                console.error('Git command failed:', error.message);
-                throw new Error('Failed to commit version changes: ' + error.message);
-            }
-            
-            // Merge develop into master
-            console.log('\nMerging develop into master...');
-            execGitCommand('git checkout master');
-            execGitCommand('git pull origin master');
-            execGitCommand('git merge develop');
-            execGitCommand('git push origin master');
-            execGitCommand('git checkout develop');
-            
             // Build the plugin
-            console.log('\nBuilding plugin...');
+            console.log('\n🔨 Building plugin...');
+            await new Promise((resolve, reject) => {
+                build((err, zipPath) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        console.log(`✅ Build successful. Zip file created: ${zipPath}`);
+                        resolve(zipPath);
+                    }
+                }, { skipRelease: true, skipVersionPrompt: true });
+            });
             
-            // Build the plugin and get the zip path
-            let zipPath;
-            try {
-                zipPath = await build(null, { skipPrompts: true });
-                console.log(`Zip file created at: ${zipPath}`);
-            } catch (error) {
-                console.error('Error building plugin:', error);
-                throw error;
+            // Commit changes
+            console.log('\n📝 Committing version changes...');
+            execGitCommand(`git add -A`);
+            execGitCommand(`git commit -m "Bump version to ${newVersion}"`);
+            
+            // Create tag
+            console.log(`\n🏷️ Creating tag v${newVersion}...`);
+            execGitCommand(`git tag -a v${newVersion} -m "Version ${newVersion}"`);
+            
+            // Push changes
+            console.log('\n🚀 Pushing changes to remote...');
+            execGitCommand('git push');
+            execGitCommand('git push --tags');
+            
+            // Perform GitHub release if requested
+            if (selectedReleaseType === 'github' || selectedReleaseType === 'both') {
+                console.log('\n🚀 Creating GitHub release...');
+                await createGitHubRelease(newVersion, changelog);
             }
             
-            if (!zipPath) {
-                console.log('Warning: No zip file was created during build process.');
-                
-                // Try to find the zip file manually based on version
-                const distDir = path.join(rootDir, 'dist');
-                const zipFileName = `better-category-manager-${newVersion}.zip`;
-                const manualZipPath = path.join(distDir, zipFileName);
-                
-                if (fs.existsSync(manualZipPath)) {
-                    console.log(`Found zip file manually: ${manualZipPath}`);
-                    zipPath = manualZipPath;
-                } else {
-                    console.warn('Could not find zip file for release. GitHub release may fail.');
-                }
+            // Perform SVN release if requested
+            if (selectedReleaseType === 'svn' || selectedReleaseType === 'both') {
+                console.log('\n🚀 Creating SVN release...');
+                await svnRelease.releaseSvn(newVersion);
             }
             
-            // Create GitHub release if selected
-            if (selectedPlatforms.includes('github')) {
-                console.log('\nCreating GitHub release...');
-                await createGitHubRelease(newVersion, changelogEntry, zipPath);
-                console.log('✅ GitHub release completed successfully');
-            }
-            
-            // Create SVN release if selected
-            if (selectedPlatforms.includes('svn')) {
-                console.log('\nCreating WordPress.org SVN release...');
-                await svnRelease(newVersion);
-                console.log('✅ WordPress.org SVN release completed successfully');
-            }
-            
-            console.log(`\n🎉 Successfully released version ${newVersion}!`);
+            console.log(`\n✅ Release ${newVersion} completed successfully!`);
         } catch (error) {
-            console.error('Error during release:', error);
-            console.log('\nRolling back changes...');
+            console.error(`\n❌ Release failed: ${error.message}`);
             await restoreFromBackup();
-            throw error;
+            process.exit(1);
         }
     } catch (error) {
-        console.error('\n❌ Release failed:', error.message);
+        console.error(`\n❌ Release failed: ${error.message}`);
         process.exit(1);
-    } finally {
-        rl.close();
     }
 }
 
-// Run the release process
-release();
+// Run the release process if called directly
+if (require.main === module) {
+    // Check for command line arguments
+    const args = process.argv.slice(2);
+    let releaseType;
+    
+    if (args.includes('--github')) {
+        releaseType = 'github';
+    } else if (args.includes('--svn')) {
+        releaseType = 'svn';
+    } else if (args.includes('--both')) {
+        releaseType = 'both';
+    }
+    
+    release(releaseType);
+}
+
+// Export the release function
+module.exports = {
+    release
+};
