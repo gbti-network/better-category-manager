@@ -75,7 +75,34 @@ async function checkoutSvnRepo() {
     
     if (isSvnRepoCheckedOut()) {
         console.log('SVN repository already exists, updating...');
-        execCommand('svn update', { cwd: config.svnDir });
+        try {
+            // First try to run svn cleanup to fix any locked working copies
+            console.log('Running SVN cleanup to fix any locks...');
+            execCommand('svn cleanup', { cwd: config.svnDir });
+            
+            // Then update the repository
+            execCommand('svn update', { cwd: config.svnDir });
+        } catch (error) {
+            console.error('SVN cleanup/update failed:', error.message);
+            
+            // If cleanup fails, ask user if they want to delete and re-checkout
+            const { recreateRepo } = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'recreateRepo',
+                message: 'SVN repository is locked. Would you like to delete and re-checkout the repository?',
+                default: true
+            }]);
+            
+            if (recreateRepo) {
+                console.log('Deleting existing SVN repository...');
+                fs.removeSync(config.svnDir);
+                console.log('Checking out fresh SVN repository...');
+                fs.ensureDirSync(path.dirname(config.svnDir));
+                execCommand(`svn checkout ${config.svnUrl} ${config.svnDir}`);
+            } else {
+                throw new Error('SVN repository is locked. Please run svn cleanup manually.');
+            }
+        }
     } else {
         console.log('Checking out SVN repository...');
         fs.ensureDirSync(path.dirname(config.svnDir));
