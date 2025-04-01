@@ -352,11 +352,13 @@ async function release(releaseType) {
             
             // Build the plugin
             console.log('\n🔨 Building plugin...');
+            let zipPath;
             await new Promise((resolve, reject) => {
-                build((err, zipPath) => {
+                build((err, buildZipPath) => {
                     if (err) {
                         reject(err);
                     } else {
+                        zipPath = buildZipPath;
                         console.log(`✅ Build successful. Zip file created: ${zipPath}`);
                         resolve(zipPath);
                     }
@@ -393,7 +395,7 @@ async function release(releaseType) {
                 
                 // Perform GitHub release
                 console.log('\n🚀 Creating GitHub release...');
-                await createGitHubRelease(newVersion, changelog);
+                await createGitHubRelease(newVersion, changelog, zipPath);
             }
             
             // Perform SVN release if requested
