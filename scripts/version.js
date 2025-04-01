@@ -131,7 +131,32 @@ async function getCurrentVersion() {
     }
 }
 
+/**
+ * Synchronize versions across all files to match the main package.json
+ * @returns {Promise<string>} The synchronized version
+ */
+async function synchronizeVersions() {
+    try {
+        // Get the version from main package.json
+        const mainVersion = await getCurrentVersion();
+        console.log(`\n🔄 Synchronizing all version references to ${mainVersion}...`);
+        
+        // Update all files to match the main version
+        await updatePackageVersion(scriptsPackageJson, mainVersion);
+        await updatePluginVersion(mainVersion);
+        await updateReadmeVersion(mainVersion);
+        await updateReadmeTxtVersion(mainVersion);
+        
+        console.log(`✅ All version references synchronized to ${mainVersion}`);
+        return mainVersion;
+    } catch (error) {
+        console.error('Error synchronizing versions:', error);
+        throw error;
+    }
+}
+
 module.exports = {
     updateVersions,
-    getCurrentVersion
+    getCurrentVersion,
+    synchronizeVersions
 };

@@ -188,11 +188,38 @@ async function createSvnTag(version) {
             return;
         }
         
-        // Remove existing tag
-        execCommand(`svn rm ${svnTagDir}`, { cwd: config.svnDir });
+        try {
+            // First run cleanup to fix any locks
+            console.log(`Running SVN cleanup before removing tag ${version}...`);
+            execCommand('svn cleanup', { cwd: config.svnDir });
+            
+            // Revert any local changes in the tag directory
+            console.log(`Reverting any local changes in tag ${version}...`);
+            execCommand(`svn revert -R ${svnTagDir}`, { cwd: config.svnDir });
+            
+            // Remove existing tag with force flag
+            console.log(`Removing existing tag ${version}...`);
+            execCommand(`svn rm --force ${svnTagDir}`, { cwd: config.svnDir });
+        } catch (error) {
+            console.error(`Error removing existing tag: ${error.message}`);
+            
+            // Try a different approach - delete the directory manually and update
+            console.log('Trying alternative approach...');
+            try {
+                // Remove the directory manually
+                fs.removeSync(svnTagDir);
+                
+                // Update SVN to sync the deletion
+                execCommand('svn update', { cwd: config.svnDir });
+            } catch (removeError) {
+                console.error(`Failed to manually remove tag: ${removeError.message}`);
+                throw new Error('Could not remove existing tag. Please delete it manually.');
+            }
+        }
     }
     
     // Create tag from trunk
+    console.log('Creating new tag from trunk...');
     execCommand(`svn cp trunk tags/${version}`, { cwd: config.svnDir });
     
     console.log(`✅ SVN tag ${version} created`);

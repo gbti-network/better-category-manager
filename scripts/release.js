@@ -299,11 +299,11 @@ async function release() {
             }
         }
 
+        // First, synchronize all version references to ensure consistency
+        await versionManager.synchronizeVersions();
+        
         const currentVersion = await getCurrentVersion();
         console.log(`Current version: ${currentVersion}`);
-        
-        // Check if all version references are consistent
-        const checkedVersion = await checkVersionConsistency(currentVersion);
         
         // Prompt for release type
         const { releaseType } = await inquirer.prompt([{
@@ -311,17 +311,17 @@ async function release() {
             name: 'releaseType',
             message: 'What type of release is this?',
             choices: [
-                { name: 'patch (1.0.0 -> 1.0.1)', value: 'patch' },
-                { name: 'minor (1.0.0 -> 1.1.0)', value: 'minor' },
-                { name: 'major (1.0.0 -> 2.0.0)', value: 'major' },
+                { name: `patch (${currentVersion} -> ${semver.inc(currentVersion, 'patch')})`, value: 'patch' },
+                { name: `minor (${currentVersion} -> ${semver.inc(currentVersion, 'minor')})`, value: 'minor' },
+                { name: `major (${currentVersion} -> ${semver.inc(currentVersion, 'major')})`, value: 'major' },
                 { name: 'current (use current version)', value: 'current' }
             ]
         }]);
         
-        let newVersion = checkedVersion;
+        let newVersion = currentVersion;
         if (releaseType !== 'current') {
             // Calculate new version
-            newVersion = semver.inc(checkedVersion, releaseType);
+            newVersion = semver.inc(currentVersion, releaseType);
             console.log(`New version will be: ${newVersion}`);
             
             // Confirm version
@@ -337,13 +337,13 @@ async function release() {
                 process.exit(0);
             }
         } else {
-            console.log(`Using current version: ${checkedVersion} (no increment)`);
+            console.log(`Using current version: ${currentVersion} (no increment)`);
             
             // Confirm using current version
             const { confirmVersion } = await inquirer.prompt([{
                 type: 'confirm',
                 name: 'confirmVersion',
-                message: `Are you sure you want to proceed with current version ${checkedVersion}?`,
+                message: `Are you sure you want to proceed with current version ${currentVersion}?`,
                 default: false
             }]);
             
