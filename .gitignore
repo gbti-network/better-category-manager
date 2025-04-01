@@ -20,6 +20,7 @@
 .backup/**
 .data
 .data/**
+.scripts
 
 # IDE specific
 .idea/
@@ -44,5 +45,4 @@ debug.log
 
 # Product
 .product/assets
-
 *.po

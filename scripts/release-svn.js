@@ -212,21 +212,33 @@ async function commitSvnChanges(version) {
     // Commit changes
     const commitMessage = `Release ${version}`;
     
-    // Prompt for SVN credentials
-    const { username, password } = await inquirer.prompt([
-        {
-            type: 'input',
-            name: 'username',
-            message: 'Enter your WordPress.org username:',
-            validate: input => input ? true : 'Username is required'
-        },
-        {
-            type: 'password',
-            name: 'password',
-            message: 'Enter your WordPress.org password:',
-            validate: input => input ? true : 'Password is required'
-        }
-    ]);
+    // Get SVN credentials from environment variables
+    let username = process.env.SVN_USERNAME;
+    let password = process.env.SVN_PASSWORD;
+    
+    // If credentials are not in environment variables, prompt for them
+    if (!username || !password) {
+        console.log('SVN credentials not found in environment variables.');
+        const credentials = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'username',
+                message: 'Enter your WordPress.org username:',
+                validate: input => input ? true : 'Username is required'
+            },
+            {
+                type: 'password',
+                name: 'password',
+                message: 'Enter your WordPress.org password:',
+                validate: input => input ? true : 'Password is required'
+            }
+        ]);
+        
+        username = credentials.username;
+        password = credentials.password;
+    } else {
+        console.log(`Using SVN credentials for user: ${username} from environment variables.`);
+    }
     
     try {
         execCommand(`svn commit -m "${commitMessage}" --username ${username} --password ${password}`, { 

@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const inquirer = require('inquirer');
 const readline = require('readline');
+const semver = require('semver');
 const build = require('./build');
 const { createGitHubRelease } = require('./release-github');
 const svnRelease = require('./release-svn');
@@ -14,6 +15,7 @@ const rootDir = path.resolve(__dirname, '..');
 
 // Configuration
 const config = {
+    rootDir: rootDir,
     pluginFile: path.join(rootDir, 'better-category-manager.php'),
     packageFile: path.join(rootDir, 'package.json'),
     changelogFile: path.join(rootDir, '.product', 'changelog.md'),
@@ -47,6 +49,96 @@ function execGitCommand(command) {
  */
 async function getCurrentVersion() {
     return versionManager.getCurrentVersion();
+}
+
+/**
+ * Check if all version references are consistent
+ * @param {string} version Version to check
+ * @returns {Promise<string>} Version if consistent or fixed
+ */
+async function checkVersionConsistency(version) {
+    console.log('\n🔍 Checking version consistency across all files...');
+    const inconsistencies = [];
+
+    // Check package.json
+    const packageJson = await fs.readJson(config.packageFile);
+    if (packageJson.version !== version) {
+        inconsistencies.push(`package.json: ${packageJson.version} (expected: ${version})`);
+    }
+
+    // Check scripts/package.json if it exists
+    const scriptsPackageFile = path.join(config.rootDir, 'scripts', 'package.json');
+    if (await fs.pathExists(scriptsPackageFile)) {
+        const scriptsPackageJson = await fs.readJson(scriptsPackageFile);
+        if (scriptsPackageJson.version !== version) {
+            inconsistencies.push(`scripts/package.json: ${scriptsPackageJson.version} (expected: ${version})`);
+        }
+    }
+
+    // Check readme.txt
+    const readmeContent = await fs.readFile(config.readmeFile, 'utf8');
+    const stableTagMatch = readmeContent.match(/Stable tag:\s*([\d.]+)/);
+    if (stableTagMatch && stableTagMatch[1] !== version) {
+        inconsistencies.push(`readme.txt (Stable tag): ${stableTagMatch[1]} (expected: ${version})`);
+    }
+
+    // Check plugin file header
+    const pluginContent = await fs.readFile(config.pluginFile, 'utf8');
+    const pluginVersionMatch = pluginContent.match(/Version:\s*([0-9]+\.[0-9]+\.[0-9]+)/);
+    if (pluginVersionMatch && pluginVersionMatch[1] !== version) {
+        inconsistencies.push(`Plugin header: ${pluginVersionMatch[1]} (expected: ${version})`);
+    }
+
+    // Check BCATM_VERSION constant
+    const bcatmVersionMatch = pluginContent.match(/define\('BCATM_VERSION',\s*'([0-9]+\.[0-9]+\.[0-9]+)'\);/);
+    if (bcatmVersionMatch && bcatmVersionMatch[1] !== version) {
+        inconsistencies.push(`BCATM_VERSION constant: ${bcatmVersionMatch[1]} (expected: ${version})`);
+    }
+
+    if (inconsistencies.length > 0) {
+        console.error('\n⚠️ Version inconsistencies detected:');
+        inconsistencies.forEach(issue => console.error(`  - ${issue}`));
+        
+        const { fixInconsistencies } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'fixInconsistencies',
+            message: 'Would you like to fix these inconsistencies before proceeding?',
+            default: true
+        }]);
+        
+        if (fixInconsistencies) {
+            console.log('\n🔧 Fixing version inconsistencies...');
+            
+            // Check which version to use (prompt user)
+            const versionChoices = [...new Set([
+                version,
+                ...inconsistencies.map(issue => {
+                    const match = issue.match(/: ([0-9]+\.[0-9]+\.[0-9]+) \(expected:/);
+                    return match ? match[1] : null;
+                }).filter(Boolean)
+            ])];
+            
+            const { targetVersion } = await inquirer.prompt([{
+                type: 'list',
+                name: 'targetVersion',
+                message: 'Which version should be used across all files?',
+                choices: versionChoices,
+                default: version
+            }]);
+            
+            // Update all versions to the selected version
+            await versionManager.updateVersions('none', targetVersion);
+            console.log('✅ All versions have been synchronized to', targetVersion);
+            
+            // Update the current version to the synchronized version
+            return targetVersion;
+        } else {
+            throw new Error('Version inconsistencies must be fixed before proceeding with the release');
+        }
+    } else {
+        console.log('✅ All version references are consistent');
+        return version;
+    }
 }
 
 /**
@@ -210,30 +302,61 @@ async function release() {
         const currentVersion = await getCurrentVersion();
         console.log(`Current version: ${currentVersion}`);
         
-        // Get version increment type
-        const type = await promptVersionType();
+        // Check if all version references are consistent
+        const checkedVersion = await checkVersionConsistency(currentVersion);
         
-        // Calculate new version
-        const newVersion = calculateNewVersion(currentVersion, type);
-        console.log(`New version will be: ${newVersion}`);
+        // Prompt for release type
+        const { releaseType } = await inquirer.prompt([{
+            type: 'list',
+            name: 'releaseType',
+            message: 'What type of release is this?',
+            choices: [
+                { name: 'patch (1.0.0 -> 1.0.1)', value: 'patch' },
+                { name: 'minor (1.0.0 -> 1.1.0)', value: 'minor' },
+                { name: 'major (1.0.0 -> 2.0.0)', value: 'major' },
+                { name: 'current (use current version)', value: 'current' }
+            ]
+        }]);
+        
+        let newVersion = checkedVersion;
+        if (releaseType !== 'current') {
+            // Calculate new version
+            newVersion = semver.inc(checkedVersion, releaseType);
+            console.log(`New version will be: ${newVersion}`);
+            
+            // Confirm version
+            const { confirmVersion } = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'confirmVersion',
+                message: `Are you sure you want to proceed with version ${newVersion}?`,
+                default: false
+            }]);
+            
+            if (!confirmVersion) {
+                console.log('\nRelease process cancelled');
+                process.exit(0);
+            }
+        } else {
+            console.log(`Using current version: ${checkedVersion} (no increment)`);
+            
+            // Confirm using current version
+            const { confirmVersion } = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'confirmVersion',
+                message: `Are you sure you want to proceed with current version ${checkedVersion}?`,
+                default: false
+            }]);
+            
+            if (!confirmVersion) {
+                console.log('\nRelease process cancelled');
+                process.exit(0);
+            }
+        }
         
         // Check for changelog entry
         const changelogEntry = await getChangelogEntry(newVersion);
         if (!changelogEntry) {
             throw new Error(`No changelog entry found for version ${newVersion}`);
-        }
-        
-        // Add confirmation step before proceeding
-        const { confirmVersion } = await inquirer.prompt([{
-            type: 'confirm',
-            name: 'confirmVersion',
-            message: `Are you sure you want to proceed with version ${newVersion}?`,
-            default: false
-        }]);
-        
-        if (!confirmVersion) {
-            console.log('Release process cancelled by user.');
-            process.exit(0);
         }
         
         // Ask which platforms to release to
@@ -263,15 +386,15 @@ async function release() {
             if (!selectedPlatforms.includes('svn')) selectedPlatforms.push('svn');
         }
         
-        // Add confirmation step before proceeding with the release
-        const { confirmRelease } = await inquirer.prompt([{
+        // Add final confirmation step before proceeding with the release
+        const { confirmFinal } = await inquirer.prompt([{
             type: 'confirm',
-            name: 'confirmRelease',
+            name: 'confirmFinal',
             message: `Ready to release version ${newVersion} to ${selectedPlatforms.join(', ')}?`,
             default: false
         }]);
         
-        if (!confirmRelease) {
+        if (!confirmFinal) {
             console.log('Release process cancelled by user.');
             process.exit(0);
         }
@@ -281,7 +404,9 @@ async function release() {
         
         try {
             // Update versions using the version manager
-            await versionManager.updateVersions(type);
+            if (releaseType !== 'current') {
+                await versionManager.updateVersions(releaseType);
+            }
             
             // Also update readme.txt if it exists
             await updateReadmeVersion(newVersion);

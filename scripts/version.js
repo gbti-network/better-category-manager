@@ -22,18 +22,66 @@ async function updatePackageVersion(filePath, newVersion) {
  */
 async function updatePluginVersion(newVersion) {
     let content = await fs.readFile(pluginFile, 'utf8');
+    
+    // Update version in plugin header
     content = content.replace(
         /Version:\s*([0-9]+\.[0-9]+\.[0-9]+)/,
         `Version: ${newVersion}`
     );
+    
+    // Update BCATM_VERSION constant
+    content = content.replace(
+        /define\('BCATM_VERSION',\s*'([0-9]+\.[0-9]+\.[0-9]+)'\);/,
+        `define('BCATM_VERSION', '${newVersion}');`
+    );
+    
     await fs.writeFile(pluginFile, content, 'utf8');
     console.log(`✓ Updated version in plugin file to ${newVersion}`);
 }
 
 /**
+ * Update version in README.md file
+ */
+async function updateReadmeVersion(newVersion) {
+    const readmeFile = path.resolve(__dirname, '../README.md');
+    
+    // Check if README.md exists
+    if (await fs.pathExists(readmeFile)) {
+        let content = await fs.readFile(readmeFile, 'utf8');
+        content = content.replace(
+            /## Version: ([0-9]+\.[0-9]+\.[0-9]+)/,
+            `## Version: ${newVersion}`
+        );
+        await fs.writeFile(readmeFile, content, 'utf8');
+        console.log(`✓ Updated version in README.md file to ${newVersion}`);
+    }
+}
+
+/**
+ * Update version in readme.txt file
+ */
+async function updateReadmeTxtVersion(newVersion) {
+    const readmeTxtFile = path.resolve(__dirname, '../readme.txt');
+    
+    // Check if readme.txt exists
+    if (await fs.pathExists(readmeTxtFile)) {
+        let content = await fs.readFile(readmeTxtFile, 'utf8');
+        
+        // Update Stable tag
+        content = content.replace(
+            /Stable tag:\s*([0-9]+\.[0-9]+\.[0-9]+)/,
+            `Stable tag: ${newVersion}`
+        );
+        
+        await fs.writeFile(readmeTxtFile, content, 'utf8');
+        console.log(`Updated version in readme.txt to ${newVersion}`);
+    }
+}
+
+/**
  * Update version across all files
  */
-async function updateVersions(type = 'patch') {
+async function updateVersions(type = 'patch', specificVersion = null) {
     try {
         console.log('\n📦 Updating version numbers...');
         
@@ -41,31 +89,46 @@ async function updateVersions(type = 'patch') {
         const pkg = await fs.readJson(mainPackageJson);
         const currentVersion = pkg.version;
         
-        // Calculate new version
-        const newVersion = semver.inc(currentVersion, type);
-        if (!newVersion) {
-            throw new Error('Invalid version increment type');
+        // Calculate new version or use specific version
+        let newVersion;
+        if (specificVersion) {
+            newVersion = specificVersion;
+        } else if (type === 'none') {
+            newVersion = currentVersion; // No increment, just sync
+        } else {
+            newVersion = semver.inc(currentVersion, type);
+            if (!newVersion) {
+                throw new Error('Invalid version increment type');
+            }
         }
 
         // Update all files
         await updatePackageVersion(mainPackageJson, newVersion);
         await updatePackageVersion(scriptsPackageJson, newVersion);
         await updatePluginVersion(newVersion);
-
+        await updateReadmeVersion(newVersion);
+        await updateReadmeTxtVersion(newVersion);
+        
         console.log(`\n✅ Successfully updated all versions from ${currentVersion} to ${newVersion}`);
         return newVersion;
     } catch (error) {
-        console.error('\n❌ Error updating versions:', error.message);
+        console.error('Error updating versions:', error);
         throw error;
     }
 }
 
 /**
- * Get current version from main package.json
+ * Get current version from package.json
+ * @returns {Promise<string>} Current version
  */
 async function getCurrentVersion() {
-    const pkg = await fs.readJson(mainPackageJson);
-    return pkg.version;
+    try {
+        const pkg = await fs.readJson(mainPackageJson);
+        return pkg.version;
+    } catch (error) {
+        console.error('Error getting current version:', error);
+        throw error;
+    }
 }
 
 module.exports = {

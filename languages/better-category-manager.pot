@@ -1,8 +1,8 @@
 # Copyright (C) 2025 GBTI
-# This file is distributed under the same license as theBetter Category Manager Lite plugin.
+# This file is distributed under the same license as the Better Category Manager plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version:Better Category Manager Lite 1.0.7.1\n"
+"Project-Id-Version:Better Category Manager 1.0.7.1\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/better-category-manager\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2025-03-16T23:54:41.307Z\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator:Better Category Manager Lite Translation Scanner 1.0\n"
+"X-Generator:Better Category Manager Translation Scanner 1.0\n"
 "X-Domain: better-category-manager\n"\n\nmsgid "Settings"
 msgstr ""
 

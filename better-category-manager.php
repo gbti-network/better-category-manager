@@ -31,7 +31,7 @@ class BCATM_Plugin {
 
     private function set_constants() {
         define('BCATM_PLUGIN_FILE', __FILE__);
-        define('BCATM_VERSION', '1.0.0');
+        define('BCATM_VERSION', '1.0.1');
         define('BCATM_PLUGIN_DIR', plugin_dir_path(__FILE__));
         define('BCATM_PLUGIN_URL', plugin_dir_url(__FILE__));
         define('BCATM_LANGUAGES_DIR', BCATM_PLUGIN_DIR . 'languages');
