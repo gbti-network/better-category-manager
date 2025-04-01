@@ -11,6 +11,10 @@
 # Build outputs
 /dist
 /build
+/svn/*
+!/svn/assets/
+/.svn-repo/
+/.snapshots/ 
 *.zip
 .backup
 .backup/**

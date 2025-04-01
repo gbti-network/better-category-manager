@@ -4,9 +4,9 @@
 (function($) {
     'use strict';
 
-    window.BCM = window.BCM || {};
+    window.BCATM = window.BCATM || {};
     
-    BCM.utils = {
+    BCATM.utils = {
         /**
          * Debounce function to limit the rate at which a function can fire
          */

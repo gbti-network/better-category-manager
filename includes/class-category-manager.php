@@ -1,10 +1,10 @@
 <?php
-namespace BCM;
+namespace BCATM;
 
-use BCM\Settings;
+use BCATM\Settings;
 
 /**
- * Handles admin interface functionality for the BCM Category Manager
+ * Handles admin interface functionality for the BCATM Category Manager
  */
 class Admin {
     private static $instance = null;
@@ -34,13 +34,13 @@ class Admin {
      * Register the admin menu and submenus
      */
     public function register_admin_menu() {
-        // Add a hidden page for the manager that's accessible via edit.php?page=BCM-manager
+        // Add a hidden page for the manager that's accessible via edit.php?page=BCATM-manager
         add_submenu_page(
             null,
             esc_html__('Category Manager', 'better-category-manager'),
             esc_html__('Category Manager', 'better-category-manager'),
             'manage_categories',
-            'BCM-manager',
+            'BCATM-manager',
             [$this, 'render_admin_page']
         );
 
@@ -51,7 +51,7 @@ class Admin {
             foreach ($submenu['edit.php'] as $key => $item) {
                 if (isset($item[2]) && $item[2] === 'edit-tags.php?taxonomy=category') {
                     // Replace the URL with our custom page
-                    $submenu['edit.php'][$key][2] = 'edit.php?page=BCM-manager';
+                    $submenu['edit.php'][$key][2] = 'edit.php?page=BCATM-manager';
                     break;
                 }
             }
@@ -64,47 +64,40 @@ class Admin {
     public function enqueue_admin_assets($hook) {
 
         // Also check our direct access page
-        if ($hook !== 'posts_page_BCM-manager') {
+        if ($hook !== 'posts_page_BCATM-manager') {
             return;
         }
         
         // Enqueue CSS
         wp_enqueue_style(
-            'BCM-admin-style',
-            BCM_ASSETS_URL . 'css/category-editor.css',
+            'BCATM-admin-style',
+            BCATM_ASSETS_URL . 'css/category-editor.css',
             [],
-            BCM_VERSION
+            BCATM_VERSION
         );
 
         wp_enqueue_style(
-            'BCM-import-export-style',
-            BCM_ASSETS_URL . 'css/import-export.css',
+            'BCATM-import-export-style',
+            BCATM_ASSETS_URL . 'css/import-export.css',
             [],
-            BCM_VERSION
+            BCATM_VERSION
         );
 
-        // Enqueue loader CSS
-        wp_enqueue_style(
-            'BCM-loader',
-            BCM_ASSETS_URL . 'css/loader.css',
-            [],
-            BCM_VERSION
-        );
 
         // Enqueue JavaScript
         wp_enqueue_script(
-            'BCM-utils',
-            BCM_ASSETS_URL . 'js/utils.js',
+            'BCATM-utils',
+            BCATM_ASSETS_URL . 'js/utils.js',
             ['jquery'],
-            BCM_VERSION,
+            BCATM_VERSION,
             true
         );
         
         wp_enqueue_script(
-            'BCM-logging',
-            BCM_ASSETS_URL . 'js/debug.js',
-            ['jquery', 'BCM-utils'],
-            BCM_VERSION,
+            'BCATM-logging',
+            BCATM_ASSETS_URL . 'js/debug.js',
+            ['jquery', 'BCATM-utils'],
+            BCATM_VERSION,
             true
         );
 
@@ -113,24 +106,24 @@ class Admin {
 
         // Enqueue JavaScript with wp-util dependency
         wp_enqueue_script(
-            'BCM-admin-script',
-            BCM_ASSETS_URL . 'js/category-manager.js',
-            ['jquery', 'wp-util', 'BCM-utils', 'BCM-logging', 'jquery-ui-sortable'],
-            BCM_VERSION,
+            'BCATM-admin-script',
+            BCATM_ASSETS_URL . 'js/category-manager.js',
+            ['jquery', 'wp-util', 'BCATM-utils', 'BCATM-logging', 'jquery-ui-sortable'],
+            BCATM_VERSION,
             true
         );
 
         wp_enqueue_script(
-            'BCM-import-export-script',
-            BCM_ASSETS_URL . 'js/import-export.js',
-            ['jquery', 'BCM-utils'],
-            BCM_VERSION,
+            'BCATM-import-export-script',
+            BCATM_ASSETS_URL . 'js/import-export.js',
+            ['jquery', 'BCATM-utils'],
+            BCATM_VERSION,
             true
         );
 
         // Localize scripts
-        wp_localize_script('BCM-import-export-script', 'BCMData', [
-            'nonce' => wp_create_nonce('BCM_nonce'),
+        wp_localize_script('BCATM-import-export-script', 'BCATMData', [
+            'nonce' => wp_create_nonce('BCATM_nonce'),
             'ajaxurl' => admin_url('admin-ajax.php'),
             'i18n' => [
                 'export_success' => esc_html__('Export completed successfully.','better-category-manager'),
@@ -142,12 +135,13 @@ class Admin {
         ]);
 
         // Localize admin script
-        wp_localize_script('BCM-admin-script', 'BCMAdmin', [
+        wp_localize_script('BCATM-admin-script', 'BCATMAdmin', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'adminUrl' => admin_url(),
-            'nonce' => wp_create_nonce('BCM_nonce'),
+            'nonce' => wp_create_nonce('BCATM_nonce'),
             'has_api_key' => $this->is_api_key_configured(),
-            'settings' => get_option('BCM_settings', []),
+            'settings' => get_option('BCATM_settings', []),
+            'show_post_counts' => isset(get_option('BCATM_settings', [])['show_post_counts']) ? (bool) get_option('BCATM_settings', [])['show_post_counts'] : true,
             'default_ai_prompt' => Settings::get_instance()->get_default_ai_prompt(),
             'i18n' => [
                 'save_success' => esc_html__('Category updated successfully.', 'better-category-manager'),
@@ -181,7 +175,7 @@ class Admin {
     public function enqueue_menu_styles_scripts($hook) {
 
         // Also check our direct access page
-        if ($hook !== 'posts_page_BCM-manager') {
+        if ($hook !== 'posts_page_BCATM-manager') {
             return;
         }
         
@@ -193,7 +187,7 @@ class Admin {
             'bcm-menu-highlight',
             $plugin_url . 'assets/css/menu-highlight.css',
             [],
-            BCM_VERSION
+            BCATM_VERSION
         );
         wp_enqueue_style('bcm-menu-highlight');
         
@@ -202,7 +196,7 @@ class Admin {
             'bcm-menu-highlight',
             $plugin_url . 'assets/js/menu-highlight.js',
             ['jquery'],
-            BCM_VERSION,
+            BCATM_VERSION,
             true
         );
         wp_enqueue_script('bcm-menu-highlight');
@@ -213,7 +207,7 @@ class Admin {
      * Get available taxonomies for editing
      */
     private function get_available_taxonomies() {
-        $settings = get_option('BCM_settings');
+        $settings = get_option('BCATM_settings');
         $managed_taxonomies = isset($settings['taxonomies']) ? $settings['taxonomies'] : ['category'];
         
         $taxonomies = [];
@@ -231,7 +225,7 @@ class Admin {
      * Check if API key is configured
      */
     public function is_api_key_configured() {
-        $settings = get_option('BCM_settings');
+        $settings = get_option('BCATM_settings');
         return !empty($settings['openai_api_key']);
     }
 
@@ -250,10 +244,10 @@ class Admin {
         ob_start();
 
         // Include the admin page template
-        include BCM_TEMPLATES_DIR . 'admin-page.php';
+        include BCATM_TEMPLATES_DIR . 'admin-page.php';
 
         // Include the term modal template
-        include BCM_TEMPLATES_DIR . 'term-modal.php';
+        include BCATM_TEMPLATES_DIR . 'term-modal.php';
 
         // Output the buffered content
         echo ob_get_clean();

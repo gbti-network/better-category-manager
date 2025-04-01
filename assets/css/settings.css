@@ -1,5 +1,5 @@
 /**
- * BCM Category Manager Settings Page Styles
+ * BCATM Category Manager Settings Page Styles
  */
 
 /* Reset Admin Styles */
@@ -260,11 +260,11 @@
 }
 
 /* Checkbox Fields */
-.BCM-checkbox-group {
+.BCATM-checkbox-group {
     margin: 10px 0;
 }
 
-.BCM-checkbox-group label {
+.BCATM-checkbox-group label {
     display: block;
     position: relative;
     padding-left: 25px;
@@ -272,14 +272,14 @@
     cursor: pointer;
 }
 
-.BCM-checkbox-group input[type="checkbox"] {
+.BCATM-checkbox-group input[type="checkbox"] {
     position: absolute;
     left: 0;
     top: 2px;
 }
 
 /* RTL Support */
-.rtl .BCM-checkbox-group label {
+.rtl .BCATM-checkbox-group label {
     padding-right: 25px;
     padding-left: 0;
 }
@@ -321,11 +321,11 @@
 }
 
 /* Checkbox Groups */
-.BCM-checkbox-group {
+.BCATM-checkbox-group {
     margin: 10px 0;
 }
 
-.BCM-checkbox-group label {
+.BCATM-checkbox-group label {
     display: block;
     position: relative;
     padding-left: 25px;
@@ -333,33 +333,33 @@
     cursor: pointer;
 }
 
-.BCM-checkbox-group input[type="checkbox"] {
+.BCATM-checkbox-group input[type="checkbox"] {
     position: absolute;
     left: 0;
     top: 2px;
 }
 
 /* Form Fields */
-.BCM-form-field {
+.BCATM-form-field {
     margin-bottom: 20px;
 }
 
-.BCM-form-field label {
+.BCATM-form-field label {
     display: block;
     font-weight: 600;
     margin-bottom: 5px;
 }
 
-.BCM-form-field input[type="text"],
-.BCM-form-field input[type="number"],
-.BCM-form-field input[type="password"],
-.BCM-form-field select,
-.BCM-form-field textarea {
+.BCATM-form-field input[type="text"],
+.BCATM-form-field input[type="number"],
+.BCATM-form-field input[type="password"],
+.BCATM-form-field select,
+.BCATM-form-field textarea {
     width: 100%;
     max-width: 400px;
 }
 
-.BCM-form-field textarea {
+.BCATM-form-field textarea {
     min-height: 100px;
 }
 
@@ -382,17 +382,17 @@
 
 /* Responsive Design */
 @media screen and (max-width: 782px) {
-    .BCM-form-field input[type="text"],
-    .BCM-form-field input[type="number"],
-    .BCM-form-field input[type="password"],
-    .BCM-form-field select,
-    .BCM-form-field textarea {
+    .BCATM-form-field input[type="text"],
+    .BCATM-form-field input[type="number"],
+    .BCATM-form-field input[type="password"],
+    .BCATM-form-field select,
+    .BCATM-form-field textarea {
         max-width: 100%;
     }
 }
 
 /* RTL Support */
-.rtl .BCM-checkbox-group label {
+.rtl .BCATM-checkbox-group label {
     padding-right: 25px;
     padding-left: 0;
 }
@@ -408,7 +408,7 @@
 }
 
 /* Status Indicators */
-.BCM-status-indicator {
+.BCATM-status-indicator {
     display: inline-block;
     width: 8px;
     height: 8px;
@@ -416,20 +416,20 @@
     margin-right: 5px;
 }
 
-.BCM-status-active {
+.BCATM-status-active {
     background-color: #00a32a;
 }
 
-.BCM-status-inactive {
+.BCATM-status-inactive {
     background-color: #cc1818;
 }
 
-.BCM-status-warning {
+.BCATM-status-warning {
     background-color: #dba617;
 }
 
 /* Settings Content */
-.BCM-settings-content {
+.BCATM-settings-content {
     background: #fff;
     padding: 20px;
     border: 1px solid #ccc;
@@ -437,13 +437,13 @@
     min-height: 400px;
 }
 
-.BCM-tab-description {
+.BCATM-tab-description {
     margin-bottom: 20px;
     color: #666;
     font-size: 14px;
 }
 
-.BCM-settings-section-content {
+.BCATM-settings-section-content {
     background-color:#fff !important;
 
 }
@@ -476,15 +476,15 @@ p.submit input {
 }
 
 /* Field Errors */
-.BCM-field-error {
+.BCATM-field-error {
     color: #d63638;
     margin-top: 5px;
     font-size: 12px;
 }
 
-input.BCM-error,
-select.BCM-error,
-textarea.BCM-error {
+input.BCATM-error,
+select.BCATM-error,
+textarea.BCATM-error {
     border-color: #d63638;
 }
 
@@ -507,7 +507,7 @@ textarea.BCM-error {
 
 /* Tab Section Visibility */
 
-.BCM-settings-section .description {
+.BCATM-settings-section .description {
     font-size: 14px;
     margin-bottom: 20px;
 }
@@ -520,13 +520,13 @@ textarea.BCM-error {
     width: 80px;
 }
 
-.BCM-field-error {
+.BCATM-field-error {
     color: #d63638;
     margin-top: 5px;
 }
 
 /* Auth Notice */
-.BCM-auth-notice {
+.BCATM-auth-notice {
     background: #fff;
     border: 1px solid #dcdcde;
     border-radius: 4px;
@@ -534,20 +534,20 @@ textarea.BCM-error {
     text-align: center;
 }
 
-.BCM-auth-notice h2 {
+.BCATM-auth-notice h2 {
     margin: 0 0 1rem;
     font-size: 1.5rem;
     color: #1d2327;
 }
 
-.BCM-auth-notice p {
+.BCATM-auth-notice p {
     font-size: 1.1rem;
     color: #50575e;
     margin-bottom: 2rem;
 }
 
 /* GitHub Button */
-.BCM-github-auth {
+.BCATM-github-auth {
     display: flex !important;
     align-items: center;
     justify-content: center;
@@ -560,23 +560,23 @@ textarea.BCM-error {
     transition: all 0.2s ease-in-out !important;
 }
 
-.BCM-github-auth:hover {
+.BCATM-github-auth:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.BCM-github-logo {
+.BCATM-github-logo {
     width: 24px;
     height: 24px;
 }
 
 /* Dark mode support */
-.BCM-github-auth.button-primary .BCM-github-logo {
+.BCATM-github-auth.button-primary .BCATM-github-logo {
     fill: currentColor;
 }
 
 /* Welcome Dashboard Styles */
-.BCM-welcome-dashboard {
+.BCATM-welcome-dashboard {
     max-width: 800px;
     margin: 0 auto;
     background: #fff;
@@ -585,7 +585,7 @@ textarea.BCM-error {
     padding: 24px;
 }
 
-.BCM-user-profile {
+.BCATM-user-profile {
     display: flex;
     align-items: flex-start;
     gap: 24px;
@@ -594,7 +594,7 @@ textarea.BCM-error {
     border-bottom: 1px solid #eee;
 }
 
-.BCM-avatar {
+.BCATM-avatar {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -602,48 +602,48 @@ textarea.BCM-error {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.BCM-user-info {
+.BCATM-user-info {
     flex: 1;
 }
 
-.BCM-user-info h2 {
+.BCATM-user-info h2 {
     margin: 0 0 8px;
     font-size: 24px;
     font-weight: 600;
     color: #1d2327;
 }
 
-.BCM-company {
+.BCATM-company {
     margin: 0 0 16px;
     color: #50575e;
     font-size: 14px;
 }
 
-.BCM-github-stats {
+.BCATM-github-stats {
     display: flex;
     gap: 16px;
     margin-bottom: 20px;
 }
 
-.BCM-github-stats span {
+.BCATM-github-stats span {
     color: #50575e;
     font-size: 13px;
 }
 
-.BCM-actions {
+.BCATM-actions {
     margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.BCM-action-buttons {
+.BCATM-action-buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.BCM-action-buttons .button {
+.BCATM-action-buttons .button {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -653,25 +653,25 @@ textarea.BCM-error {
     line-height: 1.4;
 }
 
-.BCM-action-buttons .button .dashicons {
+.BCATM-action-buttons .button .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
     margin-top: 1px;
 }
 
-.BCM-action-buttons .button-primary {
+.BCATM-action-buttons .button-primary {
     background: #2271b1;
     border-color: #2271b1;
     color: #fff;
 }
 
-.BCM-action-buttons .button-primary:hover {
+.BCATM-action-buttons .button-primary:hover {
     background: #135e96;
     border-color: #135e96;
 }
 
-#BCM-delete-connection {
+#BCATM-delete-connection {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -685,14 +685,14 @@ textarea.BCM-error {
     border: 1px solid #d0d7de;
 }
 
-#BCM-delete-connection:hover {
+#BCATM-delete-connection:hover {
     color: #cf222e;
     border-color: #cf222e;
     background: #ffebe9;
     text-decoration: none;
 }
 
-#BCM-delete-connection .dashicons {
+#BCATM-delete-connection .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
@@ -700,7 +700,7 @@ textarea.BCM-error {
 }
 
 /* Sponsor Card */
-.BCM-sponsor-card {
+.BCATM-sponsor-card {
     background: #f6f8fa;
     border: 1px solid #d0d7de;
     border-radius: 6px;
@@ -709,13 +709,13 @@ textarea.BCM-error {
     margin-bottom: 24px;
 }
 
-.BCM-sponsor-card h3 {
+.BCATM-sponsor-card h3 {
     margin: 0 0 12px;
     font-size: 20px;
     color: #24292f;
 }
 
-.BCM-sponsor-card p {
+.BCATM-sponsor-card p {
     margin: 0 0 20px;
     color: #57606a;
     font-size: 14px;
@@ -723,14 +723,14 @@ textarea.BCM-error {
 }
 
 /* Action Cards */
-.BCM-action-cards {
+.BCATM-action-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
 }
 
-.BCM-action-card {
+.BCATM-action-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -744,21 +744,21 @@ textarea.BCM-error {
     color: #24292f;
 }
 
-.BCM-action-card:hover {
+.BCATM-action-card:hover {
     background: #f6f8fa;
     border-color: #8250df;
     color: #24292f;
     transform: translateY(-2px);
 }
 
-.BCM-action-card .dashicons {
+.BCATM-action-card .dashicons {
     font-size: 24px;
     width: 24px;
     height: 24px;
     margin-bottom: 8px;
 }
 
-.BCM-action-title {
+.BCATM-action-title {
     font-size: 14px;
     font-weight: 500;
 }
@@ -793,14 +793,14 @@ textarea.BCM-error {
 }
 
 /* Auth Actions */
-.BCM-auth-actions {
+.BCATM-auth-actions {
     text-align: center;
     margin: 24px 0;
     padding: 16px;
     border-top: 1px solid #d0d7de;
 }
 
-#BCM-delete-connection {
+#BCATM-delete-connection {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -814,14 +814,14 @@ textarea.BCM-error {
     border: 1px solid #d0d7de;
 }
 
-#BCM-delete-connection:hover {
+#BCATM-delete-connection:hover {
     color: #cf222e;
     border-color: #cf222e;
     background: #ffebe9;
     text-decoration: none;
 }
 
-#BCM-delete-connection .dashicons {
+#BCATM-delete-connection .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
@@ -829,7 +829,7 @@ textarea.BCM-error {
 }
 
 /* User Profile */
-.BCM-user-profile {
+.BCATM-user-profile {
     background: #fff;
     border: 1px solid #d0d7de;
     border-radius: 6px;
@@ -840,30 +840,30 @@ textarea.BCM-error {
     gap: 20px;
 }
 
-.BCM-avatar {
+.BCATM-avatar {
     width: 64px;
     height: 64px;
     border-radius: 50%;
 }
 
-.BCM-user-info {
+.BCATM-user-info {
     flex: 1;
 }
 
-.BCM-user-header {
+.BCATM-user-header {
     display: flex;
     align-items: center;
     gap: 12px;
     margin-bottom: 4px;
 }
 
-.BCM-user-header h2 {
+.BCATM-user-header h2 {
     margin: 0;
     font-size: 20px;
     color: #24292f;
 }
 
-.BCM-sponsor-status {
+.BCATM-sponsor-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -874,32 +874,32 @@ textarea.BCM-error {
     line-height: 18px;
 }
 
-.BCM-sponsor-active {
+.BCATM-sponsor-active {
     background-color: #238636;
     color: #fff;
 }
 
-.BCM-company {
+.BCATM-company {
     margin: 0;
     color: #57606a;
     font-size: 14px;
 }
 
 /* Changelog */
-.BCM-changelog {
+.BCATM-changelog {
     background: #fff;
     border: 1px solid #d0d7de;
     border-radius: 6px;
     padding: 24px;
 }
 
-.BCM-changelog h3 {
+.BCATM-changelog h3 {
     margin: 0 0 16px;
     font-size: 16px;
     color: #24292f;
 }
 
-.BCM-changelog-content {
+.BCATM-changelog-content {
     color: #57606a;
     font-size: 14px;
     line-height: 1.5;
@@ -907,31 +907,31 @@ textarea.BCM-error {
 
 /* Responsive */
 @media screen and (max-width: 782px) {
-    .BCM-action-cards {
+    .BCATM-action-cards {
         grid-template-columns: 1fr;
     }
     
-    .BCM-user-profile {
+    .BCATM-user-profile {
         flex-direction: column;
         text-align: center;
     }
     
-    .BCM-user-header {
+    .BCATM-user-header {
         flex-direction: column;
         text-align: center;
     }
 }
 
 /* Changelog Styles */
-.BCM-release {
+.BCATM-release {
     margin-bottom: 24px;
 }
 
-.BCM-release:last-child {
+.BCATM-release:last-child {
     margin-bottom: 0;
 }
 
-.BCM-release-title {
+.BCATM-release-title {
     font-size: 16px;
     font-weight: 600;
     color: #1d2327;
@@ -941,20 +941,20 @@ textarea.BCM-error {
     gap: 8px;
 }
 
-.BCM-release-title::after {
+.BCATM-release-title::after {
     content: "";
     flex: 1;
     height: 1px;
     background: #dcdcde;
 }
 
-.BCM-change-item {
+.BCATM-change-item {
     padding: 4px 0 4px 16px;
     position: relative;
     color: #50575e;
 }
 
-.BCM-change-item::before {
+.BCATM-change-item::before {
     content: "";
     position: absolute;
     left: 0;
@@ -965,40 +965,40 @@ textarea.BCM-error {
     background: #2271b1;
 }
 
-.BCM-change-spacer {
+.BCATM-change-spacer {
     height: 8px;
 }
 
-.BCM-changelog {
+.BCATM-changelog {
     background: #f8f9fa;
     border-radius: 6px;
     padding: 20px;
 }
 
-.BCM-changelog h3 {
+.BCATM-changelog h3 {
     margin: 0 0 16px;
     font-size: 18px;
     color: #1d2327;
 }
 
-.BCM-changelog-content {
+.BCATM-changelog-content {
     font-size: 14px;
     line-height: 1.6;
     color: #50575e;
 }
 
-.BCM-loading {
+.BCATM-loading {
     color: #666;
     font-style: italic;
 }
 
-.BCM-error {
+.BCATM-error {
     color: #d63638;
     font-style: italic;
 }
 
 /* Sponsor Status and CTA */
-.BCM-user-header {
+.BCATM-user-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1006,13 +1006,13 @@ textarea.BCM-error {
     width: 100%;
 }
 
-.BCM-user-header h2 {
+.BCATM-user-header h2 {
     margin: 0;
     font-size: 20px;
     color: #24292f;
 }
 
-.BCM-sponsor-status {
+.BCATM-sponsor-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1024,20 +1024,20 @@ textarea.BCM-error {
     white-space: nowrap;
 }
 
-.BCM-sponsor-active {
+.BCATM-sponsor-active {
     background: #2da44e;
     color: #fff;
 }
 
 /* Auth Actions */
-.BCM-auth-actions {
+.BCATM-auth-actions {
     text-align: center;
     margin: 24px 0;
     padding: 16px;
     border-top: 1px solid #d0d7de;
 }
 
-#BCM-delete-connection {
+#BCATM-delete-connection {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1051,14 +1051,14 @@ textarea.BCM-error {
     border: 1px solid #d0d7de;
 }
 
-#BCM-delete-connection:hover {
+#BCATM-delete-connection:hover {
     color: #cf222e;
     border-color: #cf222e;
     background: #ffebe9;
     text-decoration: none;
 }
 
-#BCM-delete-connection .dashicons {
+#BCATM-delete-connection .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
@@ -1066,13 +1066,13 @@ textarea.BCM-error {
 }
 
 @media screen and (max-width: 782px) {
-    .BCM-user-header {
+    .BCATM-user-header {
         flex-direction: column;
         gap: 12px;
         text-align: center;
     }
     
-    .BCM-sponsor-status {
+    .BCATM-sponsor-status {
         margin: 0 auto;
     }
 }
@@ -1106,7 +1106,7 @@ textarea.BCM-error {
     animation: pulse 1.5s infinite;
 }
 
-.BCM-sponsor-message {
+.BCATM-sponsor-message {
     margin: 12px 0 0;
     color: #57606a;
     font-size: 13px;

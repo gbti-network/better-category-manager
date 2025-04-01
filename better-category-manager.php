@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Better Category Manager
  * Description: Advanced category management for WordPress with a clean, efficient interface for organizing post categories.
- * Version: 1.0.0
- * Author: GBTI
+ * Version: 1.0.1
+ * Author: gbti
  * Author URI: https://gbti.network
- * Contributors: GBTI, Hudson Atwell
+ * Contributors: gbti, Hudson Atwell
  * Text Domain: better-category-manager
  * License: GPL v3
  * Requires PHP: 7.4
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class BCM_Plugin {
+class BCATM_Plugin {
     public $debug_mode;
 
     public function __construct() {
@@ -30,14 +30,14 @@ class BCM_Plugin {
     }
 
     private function set_constants() {
-        define('BCM_PLUGIN_FILE', __FILE__);
-        define('BCM_VERSION', '1.0.0');
-        define('BCM_PLUGIN_DIR', plugin_dir_path(__FILE__));
-        define('BCM_PLUGIN_URL', plugin_dir_url(__FILE__));
-        define('BCM_LANGUAGES_DIR', BCM_PLUGIN_DIR . 'languages');
-        define('BCM_INCLUDES_DIR', BCM_PLUGIN_DIR . 'includes/');
-        define('BCM_ASSETS_URL', BCM_PLUGIN_URL . 'assets/');
-        define('BCM_TEMPLATES_DIR', BCM_PLUGIN_DIR . 'templates/');
+        define('BCATM_PLUGIN_FILE', __FILE__);
+        define('BCATM_VERSION', '1.0.0');
+        define('BCATM_PLUGIN_DIR', plugin_dir_path(__FILE__));
+        define('BCATM_PLUGIN_URL', plugin_dir_url(__FILE__));
+        define('BCATM_LANGUAGES_DIR', BCATM_PLUGIN_DIR . 'languages');
+        define('BCATM_INCLUDES_DIR', BCATM_PLUGIN_DIR . 'includes/');
+        define('BCATM_ASSETS_URL', BCATM_PLUGIN_URL . 'assets/');
+        define('BCATM_TEMPLATES_DIR', BCATM_PLUGIN_DIR . 'templates/');
     }
 
     private function set_variables() {
@@ -48,42 +48,50 @@ class BCM_Plugin {
         }
     }
 
+    /**
+     * Maybe load textdomain for WordPress versions before 4.6
+     * Since WordPress 4.6, translations are automatically loaded for plugins on WordPress.org
+     */
     private function load_textdomain() {
-        load_plugin_textdomain(
-            'better-category-manager',
-            false,
-            dirname(plugin_basename(BCM_PLUGIN_FILE)) . '/languages'
-        );
+        
+        add_action('init', function() {
+            load_plugin_textdomain(
+                'better-category-manager',
+                false,
+                dirname(plugin_basename(BCATM_PLUGIN_FILE)) . '/languages'
+            );
+        });
+        
     }
 
     private function load_dependencies() {
         // Core classes
-        require_once BCM_INCLUDES_DIR . 'class-category-manager.php';
-        require_once BCM_INCLUDES_DIR . 'class-settings.php';
-        require_once BCM_INCLUDES_DIR . 'class-import-export.php';
-        require_once BCM_INCLUDES_DIR . 'class-ajax-handler.php';
+        require_once BCATM_INCLUDES_DIR . 'class-category-manager.php';
+        require_once BCATM_INCLUDES_DIR . 'class-settings.php';
+        require_once BCATM_INCLUDES_DIR . 'class-import-export.php';
+        require_once BCATM_INCLUDES_DIR . 'class-ajax-handler.php';
     }
 
     private function initialize_modules() {
         if (is_admin()) {
-            BCM\Admin::get_instance();
-            BCM\Settings::get_instance();
-            BCM\Import_Export::get_instance();
-            BCM\Ajax_Handler::get_instance();
+            BCATM\Admin::get_instance();
+            BCATM\Settings::get_instance();
+            BCATM\Import_Export::get_instance();
+            BCATM\Ajax_Handler::get_instance();
         }
     }
 
     private function get_plugin_version() {
-        return BCM_VERSION;
+        return BCATM_VERSION;
     }
 
     public function add_plugin_action_links($links) {
-        $settings_link = '<a href="' . admin_url('admin.php?page=BCM-settings') . '">' . esc_html__('Settings', 'better-category-manager') . '</a>';
+        $settings_link = '<a href="' . admin_url('admin.php?page=BCATM-settings') . '">' . esc_html__('Settings', 'better-category-manager') . '</a>';
         array_unshift($links, $settings_link);
         return $links;
     }
 }
 
-$BCM = new BCM_Plugin();
+$BCATM = new BCATM_Plugin();
 
-global $BCM;
+global $BCATM;

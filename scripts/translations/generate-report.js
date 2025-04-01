@@ -4,19 +4,39 @@ const path = require('path');
 /**
  * Generates an HTML report of the translation process
  * @param {Object} data Translation statistics and data
- * @param {string} data.pluginName Plugin name
- * @param {number} data.totalStrings Total number of strings
- * @param {number} data.newStrings Number of new strings translated
- * @param {number} data.removedStrings Number of removed strings
- * @param {Array<string>} data.generatedMoFiles List of generated .mo files
+ * @param {Object} data.changes Changes in strings
  * @param {Array<string>} data.translatedStrings List of translated strings
- * @param {Array<string>} data.removedStringsList List of removed strings
- * @param {Array<string>} data.allStrings List of all strings
- * @returns {Promise<void>}
+ * @param {number} data.translatedStringsCount Number of strings translated
+ * @param {Array<string>} data.generatedMoFiles List of generated .mo files
+ * @param {Object} data.untranslatedByLocale Object containing untranslated strings by locale
+ * @param {number} data.totalUntranslated Total number of untranslated strings
+ * @returns {Promise<string>} Path to the generated report
  */
 async function generateReport(data) {
-    const reportPath = path.join(__dirname, '../.data/translations-report.html');
+    // Ensure .data directory exists
+    const dataDir = path.join(__dirname, '../.data');
+    if (!fs.existsSync(dataDir)) {
+        await fs.promises.mkdir(dataDir, { recursive: true });
+    }
+
+    const reportPath = path.join(dataDir, 'translations-report.html');
     const timestamp = new Date().toLocaleString();
+    const pluginName = 'Better Category Manager';
+
+    // Prepare data for the report
+    const totalStrings = data.changes ? 
+        Object.keys(data.changes.current || {}).length : 
+        (data.translatedStringsCount || 0);
+    
+    const newStrings = data.changes ? data.changes.new.length : 0;
+    const modifiedStrings = data.changes ? data.changes.modified.length : 0;
+    const removedStrings = data.changes ? data.changes.removed.length : 0;
+    
+    const translatedStrings = data.translatedStrings || [];
+    const generatedMoFiles = data.generatedMoFiles || [];
+    
+    const untranslatedByLocale = data.untranslatedByLocale || {};
+    const totalUntranslated = data.totalUntranslated || 0;
 
     const html = `
 <!DOCTYPE html>
@@ -24,7 +44,7 @@ async function generateReport(data) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${data.pluginName} - Translation Report</title>
+    <title>${pluginName} - Translation Report</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -58,6 +78,9 @@ async function generateReport(data) {
             border-radius: 6px;
             border-left: 4px solid #3498db;
         }
+        .stat-card.warning {
+            border-left-color: #f39c12;
+        }
         .stat-title {
             color: #7f8c8d;
             font-size: 0.9rem;
@@ -68,6 +91,9 @@ async function generateReport(data) {
             color: #2c3e50;
             font-size: 1.5rem;
             font-weight: bold;
+        }
+        .stat-value.warning {
+            color: #f39c12;
         }
         .languages-list {
             list-style: none;
@@ -115,56 +141,102 @@ async function generateReport(data) {
         .new {
             color: #27ae60;
         }
+        .warning {
+            color: #f39c12;
+        }
+        .untranslated-details {
+            margin-top: 1rem;
+        }
+        .untranslated-locale {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #fff8e1;
+            border-radius: 4px;
+            border-left: 4px solid #f39c12;
+        }
+        .untranslated-locale h3 {
+            margin-top: 0;
+            color: #f39c12;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>${data.pluginName} Translation Dashboard</h1>
+        <h1>${pluginName} Translation Dashboard</h1>
         
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">Total Strings</div>
-                <div class="stat-value">${data.totalStrings}</div>
+                <div class="stat-value">${totalStrings}</div>
             </div>
             
             <div class="stat-card">
-                <div class="stat-title">New Strings Translated</div>
-                <div class="stat-value new">${data.newStrings}</div>
+                <div class="stat-title">New Strings</div>
+                <div class="stat-value new">${newStrings}</div>
             </div>
 
             <div class="stat-card">
-                <div class="stat-title">Strings Removed</div>
-                <div class="stat-value removed">${data.removedStrings}</div>
+                <div class="stat-title">Modified Strings</div>
+                <div class="stat-value">${modifiedStrings}</div>
             </div>
+
+            <div class="stat-card">
+                <div class="stat-title">Removed Strings</div>
+                <div class="stat-value removed">${removedStrings}</div>
+            </div>
+            
+            ${totalUntranslated > 0 ? `
+            <div class="stat-card warning">
+                <div class="stat-title">Untranslated Strings</div>
+                <div class="stat-value warning">${totalUntranslated}</div>
+            </div>
+            ` : ''}
         </div>
         
+        ${generatedMoFiles.length > 0 ? `
         <div class="stat-card">
             <div class="stat-title">Generated Language Files</div>
             <ul class="languages-list">
-                ${data.generatedMoFiles.map(file => `<li>${file}</li>`).join('')}
+                ${generatedMoFiles.map(file => `<li>${file}</li>`).join('')}
             </ul>
         </div>
+        ` : ''}
 
+        ${totalUntranslated > 0 ? `
+        <div class="strings-section">
+            <h2>Untranslated Strings</h2>
+            <div class="untranslated-details">
+                ${Object.entries(untranslatedByLocale).map(([locale, data]) => `
+                    <div class="untranslated-locale">
+                        <h3>${data.name} (${locale}): ${data.count} untranslated strings</h3>
+                        <div class="strings-list">
+                            ${data.strings.slice(0, 20).map(str => `<code class="warning">${str}</code>`).join('')}
+                            ${data.strings.length > 20 ? `<p>...and ${data.strings.length - 20} more</p>` : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+
+        ${translatedStrings.length > 0 ? `
         <div class="strings-section">
             <h2>Translated Strings</h2>
             <div class="strings-list">
-                ${data.translatedStrings.map(str => `<code class="new">${str}</code>`).join('')}
+                ${translatedStrings.slice(0, 50).map(str => `<code class="new">${str}</code>`).join('')}
+                ${translatedStrings.length > 50 ? `<p>...and ${translatedStrings.length - 50} more</p>` : ''}
             </div>
         </div>
+        ` : ''}
 
+        ${data.changes && data.changes.removed && data.changes.removed.length > 0 ? `
         <div class="strings-section">
             <h2>Removed Strings</h2>
             <div class="strings-list">
-                ${data.removedStringsList.map(str => `<code class="removed">${str}</code>`).join('')}
+                ${data.changes.removed.map(str => `<code class="removed">${str}</code>`).join('')}
             </div>
         </div>
-
-        <div class="strings-section">
-            <h2>All Strings</h2>
-            <div class="strings-list">
-                ${data.allStrings.map(str => `<code>${str}</code>`).join('')}
-            </div>
-        </div>
+        ` : ''}
         
         <div class="timestamp">Generated on: ${timestamp}</div>
     </div>
@@ -173,6 +245,7 @@ async function generateReport(data) {
 
     await fs.promises.writeFile(reportPath, html, 'utf8');
     console.log(`✓ Translation report generated at: ${reportPath}`);
+    return reportPath;
 }
 
 module.exports = generateReport;

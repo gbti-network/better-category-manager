@@ -4,11 +4,11 @@
 (function($) {
     'use strict';
 
-    window.BCM = window.BCM || {};
+    window.BCATM = window.BCATM || {};
     
-    BCM.debug = {
+    BCATM.debug = {
         isDebugMode: function() {
-            return typeof BCMLogging !== 'undefined' && BCMLogging.debug_mode === true;
+            return typeof BCATMLogging !== 'undefined' && BCATMLogging.debug_mode === true;
         },
 
         /**
@@ -20,7 +20,7 @@
                 return;
             }
             
-            const prefix = '[BCM Debug] ';
+            const prefix = '[BCATM Debug] ';
             
             if (data !== undefined) {
                 console.log(prefix + message, data);
@@ -37,7 +37,7 @@
                 return;
             }
             
-            const prefix = '[BCM Error] ';
+            const prefix = '[BCATM Error] ';
             
             if (error !== undefined) {
                 console.error(prefix + message, error);
@@ -53,7 +53,7 @@
             if (!this.isDebugMode() || !console || !console.group) {
                 return;
             }
-            console.group('[BCM Debug] ' + label);
+            console.group('[BCATM Debug] ' + label);
         },
 
         /**

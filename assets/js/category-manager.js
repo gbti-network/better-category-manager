@@ -1,11 +1,11 @@
 /**
- * BCM Category Editor JavaScript
+ * BCATM Category Editor JavaScript
  */
 (function($) {
     'use strict';
 
     /**
-     * BCM Category Editor Class
+     * BCATM Category Editor Class
      */
     class CategoryEditor {
         /**
@@ -18,8 +18,8 @@
             // Initialize templates first to catch errors early
             try {
                 this.templates = {
-                    termRow: wp.template('BCM-term-row'),
-                    termForm: wp.template('BCM-term-form')
+                    termRow: wp.template('BCATM-term-row'),
+                    termForm: wp.template('BCATM-term-form')
                 };
             } catch (error) {
                 console.error('Error initializing templates:', error);
@@ -86,21 +86,21 @@
                 termSearch: $('#term-search'),
                 addNewBtn: $('#add-new-term'),
                 termsTree: $('#category-terms-tree'),
-                termEditor: $('.BCM-term-editor'),
-                closeEditorBtn: $('.BCM-close-editor'),
-                editorContent: $('.BCM-term-editor-content'),
-                container: $('.BCM-terms-tree'),
-                notificationContainer: $('#BCM-notification-container'),
-                loadingOverlay: $('.BCM-loading-overlay'),
-                collapseAllBtn: $('.BCM-collapse-all'),
-                expandAllBtn: $('.BCM-expand-all')
+                termEditor: $('.BCATM-term-editor'),
+                closeEditorBtn: $('.BCATM-close-editor'),
+                editorContent: $('.BCATM-term-editor-content'),
+                container: $('.BCATM-terms-tree'),
+                notificationContainer: $('#BCATM-notification-container'),
+                loadingOverlay: $('.BCATM-loading-overlay'),
+                collapseAllBtn: $('.BCATM-collapse-all'),
+                expandAllBtn: $('.BCATM-expand-all')
             };
             
             // Create loading overlay if it doesn't exist
             if (!this.elements.loadingOverlay || !this.elements.loadingOverlay.length) {
                 console.warn('Loading overlay not found, creating one');
-                this.elements.container.append('<div class="BCM-loading-overlay"><span class="spinner is-active"></span></div>');
-                this.elements.loadingOverlay = $('.BCM-loading-overlay');
+                this.elements.container.append('<div class="BCATM-loading-overlay"><span class="spinner is-active"></span></div>');
+                this.elements.loadingOverlay = $('.BCATM-loading-overlay');
             }
         }
 
@@ -117,7 +117,8 @@
                 contentLoaded: false, // Track if content has been loaded
                 initialLoadComplete: false, // Track if initial load is complete
                 isHierarchical: true, // Track if the current category is hierarchical
-                isLoading: false
+                isLoading: false,
+                showPostCounts: false // Store the show_post_counts setting
             };
         }
 
@@ -126,8 +127,8 @@
          */
         init() {
             // Validate dependencies
-            if (typeof BCMAdmin === 'undefined') {
-                console.error('BCMAdmin is not defined. Cannot initialize editor.');
+            if (typeof BCATMAdmin === 'undefined') {
+                console.error('BCATMAdmin is not defined. Cannot initialize editor.');
                 this.showError('Error initializing editor. Please refresh the page and try again.');
                 return;
             }
@@ -156,31 +157,31 @@
                 this.elements.addNewBtn.on('click', () => this.showTermForm());
 
                 // Term tree events
-                this.elements.termsTree.on('click', '.BCM-toggle-children', (e) => {
+                this.elements.termsTree.on('click', '.BCATM-toggle-children', (e) => {
                     e.stopPropagation();
-                    const termRow = $(e.target).closest('.BCM-term-row');
+                    const termRow = $(e.target).closest('.BCATM-term-row');
                     this.toggleChildren(termRow);
                 });
 
-                this.elements.termsTree.on('click', '.BCM-edit-term', (e) => {
+                this.elements.termsTree.on('click', '.BCATM-edit-term', (e) => {
                     e.stopPropagation();
-                    const termId = $(e.target).closest('.BCM-term-row').data('id');
+                    const termId = $(e.target).closest('.BCATM-term-row').data('id');
                     this.loadTermData(termId);
                 });
 
                 // Delete term with confirmation
-                this.elements.termsTree.on('click', '.BCM-quick-delete', (e) => {
+                this.elements.termsTree.on('click', '.BCATM-quick-delete', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     
                     // Make sure we get the actual button even if the icon or text was clicked
-                    const button = $(e.target).hasClass('BCM-quick-delete') 
+                    const button = $(e.target).hasClass('BCATM-quick-delete') 
                         ? $(e.target) 
-                        : $(e.target).closest('.BCM-quick-delete');
+                        : $(e.target).closest('.BCATM-quick-delete');
                         
-                    const termRow = button.closest('.BCM-term-row');
+                    const termRow = button.closest('.BCATM-term-row');
                     const termId = termRow.data('id');
-                    const termName = termRow.find('.BCM-term-name').text().trim();
+                    const termName = termRow.find('.BCATM-term-name').text().trim();
                     
                     // Debug the selected elements
                     console.log('Delete button clicked for:', {
@@ -196,19 +197,19 @@
                     } else {
                         // Enter confirmation mode
                         button.addClass('confirm-delete');
-                        button.attr('title', BCMAdmin.i18n.click_confirm_delete || 'Click again to confirm deletion');
+                        button.attr('title', BCATMAdmin.i18n.click_confirm_delete || 'Click again to confirm deletion');
                         button.find('.dashicons').removeClass('dashicons-trash').addClass('dashicons-warning');
                         
                         // Add confirm text
                         if (!button.find('.confirm-text').length) {
-                            button.append('<span class="confirm-text">' + (BCMAdmin.i18n.confirm_deletion || 'Confirm Deletion') + '</span>');
+                            button.append('<span class="confirm-text">' + (BCATMAdmin.i18n.confirm_deletion || 'Confirm Deletion') + '</span>');
                         }
                         
                         // Reset after 3 seconds
                         setTimeout(() => {
                             if (button.hasClass('confirm-delete')) {
                                 button.removeClass('confirm-delete');
-                                button.attr('title', BCMAdmin.i18n.delete_term || 'Delete this term');
+                                button.attr('title', BCATMAdmin.i18n.delete_term || 'Delete this term');
                                 button.find('.dashicons').removeClass('dashicons-warning').addClass('dashicons-trash');
                                 button.find('.confirm-text').remove();
                             }
@@ -219,7 +220,7 @@
                 // Close editor
                 this.elements.closeEditorBtn.on('click', () => {
                     if (this.state.hasUnsavedChanges) {
-                        if (confirm(BCMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
+                        if (confirm(BCATMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
                             this.state.hasUnsavedChanges = false;
                             this.hideTermEditor();
                         }
@@ -229,14 +230,14 @@
                 });
 
                 // Editor form events
-                $(document).on('submit', '#BCM-term-edit-form', (e) => {
+                $(document).on('submit', '#BCATM-term-edit-form', (e) => {
                     e.preventDefault();
                     this.saveTerm();
                 });
 
-                $(document).on('click', '.BCM-delete-term', (e) => {
+                $(document).on('click', '.BCATM-delete-term', (e) => {
                     e.preventDefault();
-                    if (confirm(BCMAdmin.i18n.confirm_delete)) {
+                    if (confirm(BCATMAdmin.i18n.confirm_delete)) {
                         this.deleteTerm();
                     }
                 });
@@ -248,7 +249,7 @@
                 });
 
                 // Track changes
-                $(document).on('change input', '#BCM-term-edit-form input, #BCM-term-edit-form textarea, #BCM-term-edit-form select', () => {
+                $(document).on('change input', '#BCATM-term-edit-form input, #BCATM-term-edit-form textarea, #BCATM-term-edit-form select', () => {
                     this.state.hasUnsavedChanges = true;
                 });
 
@@ -278,29 +279,29 @@
             // Show loading overlay
             this.setLoading(true);
             
-            BCM.debug.group('Loading terms for category: ' + category);
+            BCATM.debug.group('Loading terms for category: ' + category);
             
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    action: 'BCM_get_terms',
-                    nonce: BCMAdmin.nonce,
+                    action: 'BCATM_get_terms',
+                    nonce: BCATMAdmin.nonce,
                     category: category
                 },
                 success: (response) => {
                     if (response.success) {
-                        BCM.debug.log('Terms loaded successfully', response.data);
+                        BCATM.debug.log('Terms loaded successfully', response.data);
                         
                         // Update is_hierarchical state
                         this.state.isHierarchical = response.data.is_hierarchical;
                         
                         // Show/hide tree controls based on hierarchical status
                         if (this.state.isHierarchical) {
-                            $('.BCM-tree-controls').show();
+                            $('.BCATM-tree-controls').show();
                         } else {
-                            $('.BCM-tree-controls').hide();
+                            $('.BCATM-tree-controls').hide();
                         }
                         
                         // Render terms
@@ -323,7 +324,7 @@
                 complete: () => {
                     // Hide loading overlay
                     this.setLoading(false);
-                    BCM.debug.groupEnd();
+                    BCATM.debug.groupEnd();
                 }
             });
         }
@@ -332,22 +333,22 @@
          * Render terms in the tree view
          */
         renderTerms(terms) {
-            BCM.debug.group('Rendering terms');
+            BCATM.debug.group('Rendering terms');
             
             // Get the category info from the first term if available
             if (terms && terms.length > 0 && terms[0].category_info) {
                 this.state.isHierarchical = terms[0].category_info.hierarchical;
-                BCM.debug.log('Category hierarchical status:', this.state.isHierarchical);
+                BCATM.debug.log('Category hierarchical status:', this.state.isHierarchical);
                 
                 // Add a class to the container to indicate hierarchy status
                 if (this.state.isHierarchical) {
-                    this.elements.container.addClass('BCM-hierarchical-category');
-                    this.elements.container.removeClass('BCM-flat-category');
-                    $('.BCM-tree-controls').show(); // Show expand/collapse controls for hierarchical taxonomies
+                    this.elements.container.addClass('BCATM-hierarchical-category');
+                    this.elements.container.removeClass('BCATM-flat-category');
+                    $('.BCATM-tree-controls').show(); // Show expand/collapse controls for hierarchical taxonomies
                 } else {
-                    this.elements.container.addClass('BCM-flat-category');
-                    this.elements.container.removeClass('BCM-hierarchical-category');
-                    $('.BCM-tree-controls').hide(); // Hide expand/collapse controls for non-hierarchical taxonomies
+                    this.elements.container.addClass('BCATM-flat-category');
+                    this.elements.container.removeClass('BCATM-hierarchical-category');
+                    $('.BCATM-tree-controls').hide(); // Hide expand/collapse controls for non-hierarchical taxonomies
                 }
             }
             
@@ -355,16 +356,28 @@
 
             if (!terms || !terms.length) {
                 this.elements.termsTree.html(
-                    `<p class="BCM-no-terms">${BCMAdmin.i18n.no_terms}</p>`
+                    `<p class="BCATM-no-terms">${BCATMAdmin.i18n.no_terms}</p>`
                 );
                 return;
+            }
+
+            // Store the show_post_counts setting from the response
+            this.state.showPostCounts = BCATMAdmin.show_post_counts;
+            
+            // Add a class to the container based on the show_post_counts setting
+            if (this.state.showPostCounts) {
+                this.elements.container.addClass('BCATM-show-counts');
+                this.elements.container.removeClass('BCATM-hide-counts');
+            } else {
+                this.elements.container.addClass('BCATM-hide-counts');
+                this.elements.container.removeClass('BCATM-show-counts');
             }
 
             const createTermTree = (terms, parent = 0) => {
                 const children = terms.filter(term => term.parent === parent);
                 if (!children.length) return '';
 
-                const ul = $('<ul class="BCM-term-list"></ul>');
+                const ul = $('<ul class="BCATM-term-list"></ul>');
                 children.forEach(term => {
                     const hasChildren = terms.some(t => t.parent === term.id);
                     const termHtml = this.templates.termRow({
@@ -381,7 +394,7 @@
                         const childrenContainer = createTermTree(terms, term.id);
                         if (this.state.expandedTerms.has(term.id)) {
                             childrenContainer.show();
-                            li.find('.BCM-toggle-children .dashicons')
+                            li.find('.BCATM-toggle-children .dashicons')
                                 .addClass('dashicons-arrow-down')
                                 .removeClass('dashicons-arrow-right');
                         }
@@ -399,12 +412,12 @@
             if (this.state.isHierarchical) {
                 this.initDragAndDrop();
             } else {
-                BCM.debug.log('Skipping drag and drop for non-hierarchical category');
+                BCATM.debug.log('Skipping drag and drop for non-hierarchical category');
                 // Disable drag handles for non-hierarchical taxonomies
-                this.elements.termsTree.find('.BCM-term-handle').addClass('BCM-disabled').attr('title', 'Drag and drop not available for non-hierarchical taxonomies');
+                this.elements.termsTree.find('.BCATM-term-handle').addClass('BCATM-disabled').attr('title', 'Drag and drop not available for non-hierarchical taxonomies');
             }
             
-            BCM.debug.groupEnd();
+            BCATM.debug.groupEnd();
         }
 
         /**
@@ -427,13 +440,13 @@
                 
                 const self = this;
                 
-                $('.BCM-terms-tree .BCM-term-list').sortable({
-                    handle: '.BCM-term-handle',
+                $('.BCATM-terms-tree .BCATM-term-list').sortable({
+                    handle: '.BCATM-term-handle',
                     items: '> li',
-                    placeholder: 'BCM-sortable-placeholder',
+                    placeholder: 'BCATM-sortable-placeholder',
                     tolerance: 'pointer',
                     cursor: 'move',
-                    connectWith: '.BCM-term-list',
+                    connectWith: '.BCATM-term-list',
                     delay: 150,
                     helper: 'clone',
                     grid: [20, 1],
@@ -441,7 +454,7 @@
                     start: (e, ui) => {
                         console.log('Drag Start');
                         const $item = ui.item;
-                        const $itemRow = $item.find('.BCM-term-row');
+                        const $itemRow = $item.find('.BCATM-term-row');
                         const itemOffset = $itemRow.offset();
 
                         this.state.isDragging = true;
@@ -460,15 +473,15 @@
                         const $placeholder = ui.placeholder;
                         const dragDistance = e.pageX - this.state.mouseTracking.startX;
                         const mouseY = e.pageY;
-                        const draggedItemId = ui.item.find('.BCM-term-row').data('id');
+                        const draggedItemId = ui.item.find('.BCATM-term-row').data('id');
 
                         // Clear previous visual indicators
-                        $('.BCM-term-row').removeClass('potential-parent hover-target');
+                        $('.BCATM-term-row').removeClass('potential-parent hover-target');
                         $('.temp-drop-container').removeClass('active');
                         $('.nesting-helper').remove();
 
                         // Find potential parent based on mouse position
-                        const $potentialParents = $('.BCM-term-row').filter(function() {
+                        const $potentialParents = $('.BCATM-term-row').filter(function() {
                             const $this = $(this);
                             const thisOffset = $this.offset();
                             const isAboveMouse = thisOffset.top < mouseY;
@@ -508,9 +521,9 @@
                             $placeholder.addClass('is-child-indent').css('margin-left', '20px');
 
                             // Add or update drop container
-                            let $dropContainer = closestParent.next('.BCM-term-list');
+                            let $dropContainer = closestParent.next('.BCATM-term-list');
                             if (!$dropContainer.length) {
-                                $dropContainer = $('<ul class="BCM-term-list temp-drop-container"></ul>');
+                                $dropContainer = $('<ul class="BCATM-term-list temp-drop-container"></ul>');
                                 closestParent.after($dropContainer);
                             }
                             $dropContainer.addClass('active');
@@ -519,7 +532,7 @@
                             if (!closestParent.find('.nesting-helper').length) {
                                 closestParent.append(
                                     '<span class="nesting-helper">Release to nest under ' +
-                                    closestParent.find('.BCM-term-name').text() + '</span>'
+                                    closestParent.find('.BCATM-term-name').text() + '</span>'
                                 );
                             }
                         } else {
@@ -537,12 +550,12 @@
                         // Use the stored potential parent if we were dragging right
                         if (this.state.potentialParentId && dragDistance > 100) {
                             newParentId = this.state.potentialParentId;
-                            const $parent = $(`.BCM-term-row[data-id="${newParentId}"]`);
+                            const $parent = $(`.BCATM-term-row[data-id="${newParentId}"]`);
 
                             // Create or get child list
-                            let $childList = $parent.next('.BCM-term-list:not(.temp-drop-container)');
+                            let $childList = $parent.next('.BCATM-term-list:not(.temp-drop-container)');
                             if (!$childList.length) {
-                                $childList = $('<ul class="BCM-term-list"></ul>');
+                                $childList = $('<ul class="BCATM-term-list"></ul>');
                                 $parent.after($childList);
                             }
 
@@ -553,12 +566,12 @@
                             this.updateToggleButton($parent);
                         } else {
                             // If not nesting, parent is determined by the containing list
-                            const $parentRow = $item.parent('.BCM-term-list').prev('.BCM-term-row');
+                            const $parentRow = $item.parent('.BCATM-term-list').prev('.BCATM-term-row');
                             newParentId = $parentRow.length ? $parentRow.data('id') : 0;
                         }
 
                         // Cleanup
-                        $('.BCM-term-row').removeClass('potential-parent hover-target is-dragging');
+                        $('.BCATM-term-row').removeClass('potential-parent hover-target is-dragging');
                         $('.temp-drop-container').removeClass('active');
                         $('.nesting-helper').remove();
 
@@ -582,19 +595,19 @@
          * Helper method to update toggle button
          */
         updateToggleButton($parent) {
-            const $existing = $parent.find('.BCM-toggle-children');
-            const hasChildren = $parent.next('.BCM-term-list').children().length > 0;
+            const $existing = $parent.find('.BCATM-toggle-children');
+            const hasChildren = $parent.next('.BCATM-term-list').children().length > 0;
 
             if (!hasChildren) {
                 // If no children, remove the toggle button and replace with placeholder
-                if ($existing.length && !$existing.hasClass('BCM-toggle-placeholder')) {
-                    $existing.replaceWith('<span class="BCM-toggle-placeholder"></span>');
+                if ($existing.length && !$existing.hasClass('BCATM-toggle-placeholder')) {
+                    $existing.replaceWith('<span class="BCATM-toggle-placeholder"></span>');
                 }
             } else {
                 // If has children, ensure toggle button exists and is in correct state
-                if (!$existing.length || $existing.hasClass('BCM-toggle-placeholder')) {
-                    $parent.find('.BCM-toggle-placeholder').replaceWith(`
-                <button type="button" class="BCM-toggle-children expanded" title="Toggle children visibility">
+                if (!$existing.length || $existing.hasClass('BCATM-toggle-placeholder')) {
+                    $parent.find('.BCATM-toggle-placeholder').replaceWith(`
+                <button type="button" class="BCATM-toggle-children expanded" title="Toggle children visibility">
                     <span class="dashicons dashicons-arrow-down"></span>
                 </button>
             `);
@@ -618,20 +631,20 @@
             }
 
             console.group('Updating term hierarchy');
-            console.log('Term ID:', $item.find('.BCM-term-row').data('id'));
+            console.log('Term ID:', $item.find('.BCATM-term-row').data('id'));
             console.log('New parent ID:', newParentId);
             
             this.setLoading(true);
 
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 method: 'POST',
                 data: {
-                    action: 'BCM_update_term_hierarchy',
-                    term_id: $item.find('.BCM-term-row').data('id'),
+                    action: 'BCATM_update_term_hierarchy',
+                    term_id: $item.find('.BCATM-term-row').data('id'),
                     parent_id: newParentId,
                     category: this.state.currentCategory,
-                    nonce: BCMAdmin.nonce
+                    nonce: BCATMAdmin.nonce
                 },
                 success: (response) => {
                     console.log('Ajax response:', response);
@@ -647,7 +660,7 @@
                         } else {
                             // Use default message if none provided in response
                             this.forceDisplayNotification(
-                                BCMAdmin.i18n.term_updated || 'Term updated successfully.', 
+                                BCATMAdmin.i18n.term_updated || 'Term updated successfully.', 
                                 'success'
                             );
                         }
@@ -658,7 +671,7 @@
                 },
                 error: (xhr, status, error) => {
                     console.error('Ajax error:', {xhr, status, error});
-                    this.showError(BCMAdmin.i18n.hierarchy_update_error);
+                    this.showError(BCATMAdmin.i18n.hierarchy_update_error);
                     this.loadTerms();
                 },
                 complete: () => {
@@ -672,7 +685,7 @@
          * Refresh sortable initialization after structure changes
          */
         refreshSortable() {
-            $('.BCM-terms-tree .BCM-term-list').each((_, list) => {
+            $('.BCATM-terms-tree .BCATM-term-list').each((_, list) => {
                 const $list = $(list);
                 if ($list.data('sortable')) {
                     $list.sortable('refresh');
@@ -685,8 +698,8 @@
          */
         toggleChildren(termRow) {
             const termId = termRow.data('id');
-            const childrenContainer = termRow.next('.BCM-term-list');
-            const toggleBtn = termRow.find('.BCM-toggle-children .dashicons');
+            const childrenContainer = termRow.next('.BCATM-term-list');
+            const toggleBtn = termRow.find('.BCATM-toggle-children .dashicons');
 
             if (childrenContainer.is(':visible')) {
                 childrenContainer.slideUp(200);
@@ -704,22 +717,22 @@
          */
         filterTerms(search) {
             const searchLower = search.toLowerCase();
-            const terms = this.elements.termsTree.find('.BCM-term-row');
+            const terms = this.elements.termsTree.find('.BCATM-term-row');
 
             terms.each((_, term) => {
                 const $term = $(term);
-                const termName = $term.find('.BCM-term-name').text().toLowerCase();
+                const termName = $term.find('.BCATM-term-name').text().toLowerCase();
                 const isMatch = termName.includes(searchLower);
 
                 if (isMatch) {
                     $term.show();
                     // Show parents
-                    $term.parents('.BCM-term-list').show();
-                    $term.parents('.BCM-term-row').show();
+                    $term.parents('.BCATM-term-list').show();
+                    $term.parents('.BCATM-term-row').show();
                 } else {
                     // Only hide if no children match
-                    const hasMatchingChild = $term.next('.BCM-term-list')
-                        .find('.BCM-term-name')
+                    const hasMatchingChild = $term.next('.BCATM-term-list')
+                        .find('.BCATM-term-name')
                         .text()
                         .toLowerCase()
                         .includes(searchLower);
@@ -736,7 +749,7 @@
          */
         loadTermData(termId) {
             if (this.state.hasUnsavedChanges &&
-                !confirm(BCMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
+                !confirm(BCATMAdmin.i18n.unsaved_changes || 'There are unsaved changes. Do you want to discard them?')) {
                 return;
             }
 
@@ -744,13 +757,13 @@
             this.state.currentTermId = termId;
 
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 method: 'POST',
                 data: {
-                    action: 'BCM_get_term_data',
+                    action: 'BCATM_get_term_data',
                     term_id: termId,
                     category: this.state.currentCategory,
-                    nonce: BCMAdmin.nonce
+                    nonce: BCATMAdmin.nonce
                 },
                 success: (response) => {
                     if (response.success && response.data) {
@@ -774,8 +787,8 @@
                             !!categoryInfo.hierarchical : this.state.isHierarchical;
                         
                         // Get the default prompt - prioritize the dedicated default_ai_prompt property
-                        const defaultPrompt = window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
-                            window.BCMAdmin.default_ai_prompt : '';
+                        const defaultPrompt = window.BCATMAdmin && window.BCATMAdmin.default_ai_prompt ? 
+                            window.BCATMAdmin.default_ai_prompt : '';
                         
                         // Format the data for the form template
                         const formData = {
@@ -801,7 +814,7 @@
                 },
                 error: (xhr, status, error) => {
                     console.error('Ajax error:', {xhr, status, error});
-                    this.showError(BCMAdmin.i18n.error_loading || 'Failed to load term data');
+                    this.showError(BCATMAdmin.i18n.error_loading || 'Failed to load term data');
                 },
                 complete: () => {
                     this.setLoading(false);
@@ -814,14 +827,14 @@
          */
         saveTerm() {
             console.log('Saving term...');
-            const formData = new FormData($('#BCM-term-edit-form')[0]);
-            formData.append('action', 'BCM_save_term');
-            formData.append('nonce', BCMAdmin.nonce);
+            const formData = new FormData($('#BCATM-term-edit-form')[0]);
+            formData.append('action', 'BCATM_save_term');
+            formData.append('nonce', BCATMAdmin.nonce);
 
             this.setLoading(true);
 
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 method: 'POST',
                 data: formData,
                 processData: false,
@@ -841,7 +854,7 @@
                         } else {
                             // Use default message if none provided in response
                             this.forceDisplayNotification(
-                                BCMAdmin.i18n.term_updated || 'Term updated successfully.', 
+                                BCATMAdmin.i18n.term_updated || 'Term updated successfully.', 
                                 'success'
                             );
                         }
@@ -858,7 +871,7 @@
                 error: (xhr, status, error) => {
                     console.error('Save term error:', error);
                     this.forceDisplayNotification(
-                        BCMAdmin.i18n.save_error || 'Failed to save the term.', 
+                        BCATMAdmin.i18n.save_error || 'Failed to save the term.', 
                         'error'
                     );
                 },
@@ -877,18 +890,18 @@
             if (isNewTerm) {
                 this.setLoading(true);
                 $.ajax({
-                    url: BCMAdmin.ajax_url,
+                    url: BCATMAdmin.ajax_url,
                     method: 'POST',
                     data: {
-                        action: 'BCM_get_parent_terms',
+                        action: 'BCATM_get_parent_terms',
                         category: this.state.currentCategory,
-                        nonce: BCMAdmin.nonce
+                        nonce: BCATMAdmin.nonce
                     },
                     success: (response) => {
                         if (response.success) {
-                            // Get default prompt from BCMAdmin
-                            const defaultPrompt = window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
-                                window.BCMAdmin.default_ai_prompt : '';
+                            // Get default prompt from BCATMAdmin
+                            const defaultPrompt = window.BCATMAdmin && window.BCATMAdmin.default_ai_prompt ? 
+                                window.BCATMAdmin.default_ai_prompt : '';
                                 
                             const formData = {
                                 id: '',
@@ -957,14 +970,14 @@
             }
 
             this.elements.termEditor.removeClass('hidden');
-            this.elements.termEditor.find('.BCM-term-editor-header h2')
-                .text(formData.isNewTerm ? BCMAdmin.i18n.create_term : BCMAdmin.i18n.edit_term);
+            this.elements.termEditor.find('.BCATM-term-editor-header h2')
+                .text(formData.isNewTerm ? BCATMAdmin.i18n.create_term : BCATMAdmin.i18n.edit_term);
 
             // Store the default prompt before rendering
             const defaultPrompt = formData.default_prompt || 
-                (window.BCMAdmin && window.BCMAdmin.default_ai_prompt ? 
-                window.BCMAdmin.default_ai_prompt.replace(/\[TERM_NAME\]/g, formData.name || '') : '');
-console.log(window.BCMAdmin)
+                (window.BCATMAdmin && window.BCATMAdmin.default_ai_prompt ? 
+                window.BCATMAdmin.default_ai_prompt.replace(/\[TERM_NAME\]/g, formData.name || '') : '');
+console.log(window.BCATMAdmin)
             this.elements.editorContent.html(this.templates.termForm(formData));
 
             // Set the OpenAI prompt value after rendering
@@ -990,13 +1003,13 @@ console.log(window.BCMAdmin)
             this.setLoading(true);
 
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 method: 'POST',
                 data: {
-                    action: 'BCM_delete_term',
+                    action: 'BCATM_delete_term',
                     term_id: this.state.currentTermId,
                     category: this.state.currentCategory,
-                    nonce: BCMAdmin.nonce
+                    nonce: BCATMAdmin.nonce
                 },
                 success: (response) => {
                     if (response.success) {
@@ -1008,7 +1021,7 @@ console.log(window.BCMAdmin)
                     }
                 },
                 error: () => {
-                    this.showError(BCMAdmin.i18n.delete_error);
+                    this.showError(BCATMAdmin.i18n.delete_error);
                 },
                 complete: () => {
                     this.setLoading(false);
@@ -1025,7 +1038,7 @@ console.log(window.BCMAdmin)
         deleteTermById(termId, termName) {
             if (!termId) {
                 console.error('Cannot delete term: Invalid term ID');
-                this.showError(BCMAdmin.i18n.delete_failed || 'Failed to delete term: Invalid ID');
+                this.showError(BCATMAdmin.i18n.delete_failed || 'Failed to delete term: Invalid ID');
                 return;
             }
             
@@ -1033,13 +1046,13 @@ console.log(window.BCMAdmin)
             this.setLoading(true);
             
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'BCM_delete_term',
+                    action: 'BCATM_delete_term',
                     term_id: termId,
                     category: this.state.currentCategory,
-                    nonce: BCMAdmin.nonce
+                    nonce: BCATMAdmin.nonce
                 },
                 dataType: 'json',
                 success: (response) => {
@@ -1047,18 +1060,18 @@ console.log(window.BCMAdmin)
                     
                     if (response.success) {
                         // Remove the term from the UI
-                        const termRow = this.elements.termsTree.find(`.BCM-term-row[data-id="${termId}"]`);
+                        const termRow = this.elements.termsTree.find(`.BCATM-term-row[data-id="${termId}"]`);
                         if (!termRow.length) {
                             console.error('Could not find term row to delete with ID:', termId);
                             // Reload the full tree to ensure the UI is in sync
                             this.loadTerms();
-                            this.showNotification(`${termName} ${BCMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
+                            this.showNotification(`${termName} ${BCATMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
                             return;
                         }
                         
                         // Check if it's a parent or child term and remove appropriately
                         const parentLi = termRow.closest('li');
-                        const childrenList = termRow.next('.BCM-term-list');
+                        const childrenList = termRow.next('.BCATM-term-list');
                         const hasChildren = childrenList.length > 0 && childrenList.children().length > 0;
                         
                         console.log('Term UI structure:', {
@@ -1080,10 +1093,10 @@ console.log(window.BCMAdmin)
                             }
                         }
                         
-                        this.showNotification(`${termName} ${BCMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
+                        this.showNotification(`${termName} ${BCATMAdmin.i18n.term_deleted || 'has been deleted'}.`, 'success');
                     } else {
                         console.error('Server returned error when deleting term:', response.data?.message);
-                        this.showError(response.data?.message || BCMAdmin.i18n.delete_failed || 'Failed to delete term.');
+                        this.showError(response.data?.message || BCATMAdmin.i18n.delete_failed || 'Failed to delete term.');
                     }
                 },
                 error: (xhr, status, error) => {
@@ -1092,7 +1105,7 @@ console.log(window.BCMAdmin)
                         error: error,
                         response: xhr.responseText
                     });
-                    this.showError(`${BCMAdmin.i18n.delete_failed || 'Failed to delete term'}: ${error}`);
+                    this.showError(`${BCATMAdmin.i18n.delete_failed || 'Failed to delete term'}: ${error}`);
                 },
                 complete: () => {
                     this.setLoading(false);
@@ -1104,8 +1117,8 @@ console.log(window.BCMAdmin)
          * Generate description using OpenAI
          */
         generateDescription() {
-            if (!BCMAdmin.has_api_key) {
-                this.showError(BCMAdmin.i18n.api_key_missing);
+            if (!BCATMAdmin.has_api_key) {
+                this.showError(BCATMAdmin.i18n.api_key_missing);
                 return;
             }
 
@@ -1118,13 +1131,13 @@ console.log(window.BCMAdmin)
             spinner.addClass('is-active');
 
             $.ajax({
-                url: BCMAdmin.ajax_url,
+                url: BCATMAdmin.ajax_url,
                 method: 'POST',
                 data: {
-                    action: 'BCM_generate_description',
+                    action: 'BCATM_generate_description',
                     prompt: prompt,
                     term_name: termName,
-                    nonce: BCMAdmin.nonce
+                    nonce: BCATMAdmin.nonce
                 },
                 success: (response) => {
                     if (response.success) {
@@ -1134,7 +1147,7 @@ console.log(window.BCMAdmin)
                         this.showError(response.data.message);}
                 },
                 error: () => {
-                    this.showError(BCMAdmin.i18n.generate_error);
+                    this.showError(BCATMAdmin.i18n.generate_error);
                 },
                 complete: () => {
                     button.prop('disabled', false);
@@ -1153,16 +1166,16 @@ console.log(window.BCMAdmin)
             try {
                 if (!this.elements.notificationContainer || !this.elements.notificationContainer.length) {
                     console.warn('Notification container not found, creating one');
-                    $('body').prepend('<div id="BCM-notification-container" class="BCM-notification-container"></div>');
-                    this.elements.notificationContainer = $('#BCM-notification-container');
+                    $('body').prepend('<div id="BCATM-notification-container" class="BCATM-notification-container"></div>');
+                    this.elements.notificationContainer = $('#BCATM-notification-container');
                 }
                 
                 const $notification = $(`
-                    <div class="BCM-notification BCM-notification-${type}">
-                        <div class="BCM-notification-content">
-                            <span class="BCM-notification-message">${message}</span>
+                    <div class="BCATM-notification BCATM-notification-${type}">
+                        <div class="BCATM-notification-content">
+                            <span class="BCATM-notification-message">${message}</span>
                         </div>
-                        <button type="button" class="BCM-notification-close">
+                        <button type="button" class="BCATM-notification-close">
                             <span class="dashicons dashicons-no-alt"></span>
                         </button>
                     </div>
@@ -1171,7 +1184,7 @@ console.log(window.BCMAdmin)
                 this.elements.notificationContainer.append($notification);
 
                 // Add close button handler
-                $notification.find('.BCM-notification-close').on('click', () => {
+                $notification.find('.BCATM-notification-close').on('click', () => {
                     this.dismissNotification($notification);
                 });
 
@@ -1193,7 +1206,7 @@ console.log(window.BCMAdmin)
          */
         dismissNotification($notification) {
             if ($notification.length) {
-                $notification.addClass('BCM-fadeout');
+                $notification.addClass('BCATM-fadeout');
                 setTimeout(() => {
                     $notification.remove();
                 }, 500); // Match animation duration
@@ -1230,31 +1243,31 @@ console.log(window.BCMAdmin)
             console.log('Force displaying notification:', message, type);
             
             // Make sure container exists
-            if (!$('#BCM-notification-container').length) {
+            if (!$('#BCATM-notification-container').length) {
                 console.log('Creating notification container');
-                $('.wrap').prepend('<div id="BCM-notification-container" class="BCM-notification-container"></div>');
+                $('.wrap').prepend('<div id="BCATM-notification-container" class="BCATM-notification-container"></div>');
             }
             
             // Create notification element with unique ID
             const notificationId = 'notification-' + Date.now();
-            const notificationClass = 'BCM-notification BCM-notification-' + type;
+            const notificationClass = 'BCATM-notification BCATM-notification-' + type;
             
             const notificationHtml = `
                 <div id="${notificationId}" class="${notificationClass}">
-                    <div class="BCM-notification-content">${message}</div>
-                    <div class="BCM-notification-close">&times;</div>
+                    <div class="BCATM-notification-content">${message}</div>
+                    <div class="BCATM-notification-close">&times;</div>
                 </div>
             `;
             
             // Add to container with direct jQuery
-            $('#BCM-notification-container').append(notificationHtml);
+            $('#BCATM-notification-container').append(notificationHtml);
             
             // Get notification element
             const $notification = $(`#${notificationId}`);
             
             // Setup close button
-            $notification.find('.BCM-notification-close').on('click', function() {
-                $notification.addClass('BCM-fadeout');
+            $notification.find('.BCATM-notification-close').on('click', function() {
+                $notification.addClass('BCATM-fadeout');
                 setTimeout(function() {
                     $notification.remove();
                 }, 500);
@@ -1264,7 +1277,7 @@ console.log(window.BCMAdmin)
             if (duration > 0) {
                 setTimeout(function() {
                     if ($notification.length) {
-                        $notification.addClass('BCM-fadeout');
+                        $notification.addClass('BCATM-fadeout');
                         setTimeout(function() {
                             $notification.remove();
                         }, 500);
@@ -1282,14 +1295,14 @@ console.log(window.BCMAdmin)
             let collapsed = 0;
             
             // Find all first level terms with children
-            $('#category-terms-tree > ul.BCM-term-list > li').each((_, item) => {
+            $('#category-terms-tree > ul.BCATM-term-list > li').each((_, item) => {
                 // Find the toggle button 
-                const $termRow = $(item).children('.BCM-term-row');
-                const $toggleBtn = $termRow.find('.BCM-toggle-children');
+                const $termRow = $(item).children('.BCATM-term-row');
+                const $toggleBtn = $termRow.find('.BCATM-toggle-children');
                 
                 // Only process items that have the toggle button (meaning they have children)
-                if ($toggleBtn.length && !$toggleBtn.hasClass('BCM-toggle-placeholder')) {
-                    const $childList = $(item).children('ul.BCM-term-list');
+                if ($toggleBtn.length && !$toggleBtn.hasClass('BCATM-toggle-placeholder')) {
+                    const $childList = $(item).children('ul.BCATM-term-list');
                     
                     if ($childList.length && $childList.is(':visible')) {
                         // Hide children with animation
@@ -1326,14 +1339,14 @@ console.log(window.BCMAdmin)
             let expanded = 0;
             
             // Find all first level terms with children
-            $('#category-terms-tree > ul.BCM-term-list > li').each((_, item) => {
+            $('#category-terms-tree > ul.BCATM-term-list > li').each((_, item) => {
                 // Find the toggle button 
-                const $termRow = $(item).children('.BCM-term-row');
-                const $toggleBtn = $termRow.find('.BCM-toggle-children');
+                const $termRow = $(item).children('.BCATM-term-row');
+                const $toggleBtn = $termRow.find('.BCATM-toggle-children');
                 
                 // Only process items that have the toggle button (meaning they have children)
-                if ($toggleBtn.length && !$toggleBtn.hasClass('BCM-toggle-placeholder')) {
-                    const $childList = $(item).children('ul.BCM-term-list');
+                if ($toggleBtn.length && !$toggleBtn.hasClass('BCATM-toggle-placeholder')) {
+                    const $childList = $(item).children('ul.BCATM-term-list');
                     
                     if ($childList.length && !$childList.is(':visible')) {
                         // Show children with animation
@@ -1409,14 +1422,14 @@ console.log(window.BCMAdmin)
             this.elements.closeEditorBtn.off();
 
             // Destroy sortable
-            $('.BCM-terms-tree .BCM-term-list').sortable('destroy');
+            $('.BCATM-terms-tree .BCATM-term-list').sortable('destroy');
 
             // Remove document event handlers
-            $(document).off('submit', '#BCM-term-edit-form');
-            $(document).off('click', '.BCM-cancel-edit');
-            $(document).off('click', '.BCM-delete-term');
+            $(document).off('submit', '#BCATM-term-edit-form');
+            $(document).off('click', '.BCATM-cancel-edit');
+            $(document).off('click', '.BCATM-delete-term');
             $(document).off('click', '#generate-description');
-            $(document).off('change input', '#BCM-term-edit-form input, #BCM-term-edit-form textarea, #BCM-term-edit-form select');
+            $(document).off('change input', '#BCATM-term-edit-form input, #BCATM-term-edit-form textarea, #BCATM-term-edit-form select');
 
             // Clear state
             this.state = null;
@@ -1469,7 +1482,7 @@ console.log(window.BCMAdmin)
                 }
                 
                 // Check for required template elements
-                if ($('#tmpl-BCM-term-row').length === 0 || $('#tmpl-BCM-term-form').length === 0) {
+                if ($('#tmpl-BCATM-term-row').length === 0 || $('#tmpl-BCATM-term-form').length === 0) {
                     console.error('Required template elements not found in DOM');
                     return;
                 }
@@ -1484,17 +1497,17 @@ console.log(window.BCMAdmin)
                 }, true);
                 
                 // Create editor instance
-                window.BCMCategoryEditor = new CategoryEditor();
+                window.BCATMCategoryEditor = new CategoryEditor();
                 
                 // Only initialize if creation was successful
-                if (window.BCMCategoryEditor) {
-                    window.BCMCategoryEditor.init();
+                if (window.BCATMCategoryEditor) {
+                    window.BCATMCategoryEditor.init();
                     
                     // Handle unsaved changes warning without using storage
                     $(window).on('beforeunload', function(e) {
-                        if (window.BCMCategoryEditor && 
-                            window.BCMCategoryEditor.state && 
-                            window.BCMCategoryEditor.state.hasUnsavedChanges) {
+                        if (window.BCATMCategoryEditor && 
+                            window.BCATMCategoryEditor.state && 
+                            window.BCATMCategoryEditor.state.hasUnsavedChanges) {
                             e.preventDefault();
                             return '';
                         }

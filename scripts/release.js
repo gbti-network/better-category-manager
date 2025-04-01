@@ -6,6 +6,8 @@ const inquirer = require('inquirer');
 const readline = require('readline');
 const build = require('./build');
 const { createGitHubRelease } = require('./release-github');
+const svnRelease = require('./release-svn');
+const versionManager = require('./version');
 
 // Get the root directory (parent of scripts)
 const rootDir = path.resolve(__dirname, '..');
@@ -15,7 +17,8 @@ const config = {
     pluginFile: path.join(rootDir, 'better-category-manager.php'),
     packageFile: path.join(rootDir, 'package.json'),
     changelogFile: path.join(rootDir, '.product', 'changelog.md'),
-    backupDir: path.join(rootDir, '.backup')
+    backupDir: path.join(rootDir, '.backup'),
+    readmeFile: path.join(rootDir, 'readme.txt')
 };
 
 // Create readline interface
@@ -40,11 +43,10 @@ function execGitCommand(command) {
 
 /**
  * Get current version from package.json
- * @returns {string} Current version
+ * @returns {Promise<string>} Current version
  */
-function getCurrentVersion() {
-    const pkg = require(config.packageFile);
-    return pkg.version;
+async function getCurrentVersion() {
+    return versionManager.getCurrentVersion();
 }
 
 /**
@@ -120,38 +122,24 @@ async function getChangelogEntry(version) {
 }
 
 /**
- * Update version in a file
- * @param {string} filePath Path to file
- * @param {string} oldVersion Old version
+ * Update version in readme.txt file
  * @param {string} newVersion New version
  * @returns {Promise<void>}
  */
-async function updateVersion(filePath, oldVersion, newVersion) {
-    let content = await fs.readFile(filePath, 'utf8');
-    
-    if (path.basename(filePath) === 'better-category-manager.php') {
-        // Update version in plugin header
-        content = content.replace(
-            /Version:\s*[\d.]+/,
-            `Version: ${newVersion}`
-        );
-        
-        // Update version constant if it exists
-        if (content.includes('BCM_VERSION')) {
+async function updateReadmeVersion(newVersion) {
+    if (fs.existsSync(config.readmeFile)) {
+        try {
+            let content = await fs.readFile(config.readmeFile, 'utf8');
             content = content.replace(
-                /define\(\s*['"]BCM_VERSION['"]\s*,\s*['"][\d.]+['"]\s*\)/,
-                `define('BCM_VERSION', '${newVersion}')`
+                /Stable tag:\s*[\d.]+/,
+                `Stable tag: ${newVersion}`
             );
+            await fs.writeFile(config.readmeFile, content, 'utf8');
+            console.log(`Updated version in readme.txt to ${newVersion}`);
+        } catch (error) {
+            console.warn(`Warning: Could not update readme.txt: ${error.message}`);
         }
-    } else if (path.basename(filePath) === 'package.json') {
-        // Parse JSON to avoid regex on JSON content
-        const packageJson = JSON.parse(content);
-        packageJson.version = newVersion;
-        content = JSON.stringify(packageJson, null, 2) + '\n';
     }
-    
-    await fs.writeFile(filePath, content, 'utf8');
-    console.log(`Updated version in ${path.basename(filePath)} to ${newVersion}`);
 }
 
 /**
@@ -164,8 +152,10 @@ async function backupFiles() {
     
     await fs.ensureDir(backupPath);
     
-    for (const file of [config.pluginFile, config.packageFile]) {
-        await fs.copy(file, path.join(backupPath, path.basename(file)));
+    for (const file of [config.pluginFile, config.packageFile, config.readmeFile]) {
+        if (fs.existsSync(file)) {
+            await fs.copy(file, path.join(backupPath, path.basename(file)));
+        }
     }
 }
 
@@ -180,11 +170,11 @@ async function restoreFromBackup() {
     const latestBackup = backups.sort().pop();
     const backupPath = path.join(config.backupDir, latestBackup);
     
-    for (const file of [config.pluginFile, config.packageFile]) {
-        await fs.copy(
-            path.join(backupPath, path.basename(file)),
-            file
-        );
+    for (const file of [config.pluginFile, config.packageFile, config.readmeFile]) {
+        const backupFile = path.join(backupPath, path.basename(file));
+        if (fs.existsSync(backupFile)) {
+            await fs.copy(backupFile, file);
+        }
     }
 }
 
@@ -195,7 +185,7 @@ async function release() {
     try {
         validateEnvironment();
 
-        const currentVersion = getCurrentVersion();
+        const currentVersion = await getCurrentVersion();
         console.log(`Current version: ${currentVersion}`);
         
         // Get version increment type
@@ -211,13 +201,68 @@ async function release() {
             throw new Error(`No changelog entry found for version ${newVersion}`);
         }
         
+        // Add confirmation step before proceeding
+        const { confirmVersion } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'confirmVersion',
+            message: `Are you sure you want to proceed with version ${newVersion}?`,
+            default: false
+        }]);
+        
+        if (!confirmVersion) {
+            console.log('Release process cancelled by user.');
+            process.exit(0);
+        }
+        
+        // Ask which platforms to release to
+        const { platforms } = await inquirer.prompt([{
+            type: 'checkbox',
+            name: 'platforms',
+            message: 'Select platforms to release to:',
+            choices: [
+                { name: 'GitHub', value: 'github', checked: true },
+                { name: 'WordPress.org SVN', value: 'svn', checked: true },
+                { name: 'Both (GitHub & WordPress.org SVN)', value: 'both', checked: false }
+            ],
+            validate: (answer) => {
+                if (answer.length < 1) {
+                    return 'You must choose at least one platform';
+                }
+                return true;
+            }
+        }]);
+        
+        // Process the 'both' option if selected
+        let selectedPlatforms = [...platforms];
+        if (platforms.includes('both')) {
+            // Remove 'both' and ensure both 'github' and 'svn' are included
+            selectedPlatforms = selectedPlatforms.filter(p => p !== 'both');
+            if (!selectedPlatforms.includes('github')) selectedPlatforms.push('github');
+            if (!selectedPlatforms.includes('svn')) selectedPlatforms.push('svn');
+        }
+        
+        // Add confirmation step before proceeding with the release
+        const { confirmRelease } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'confirmRelease',
+            message: `Ready to release version ${newVersion} to ${selectedPlatforms.join(', ')}?`,
+            default: false
+        }]);
+        
+        if (!confirmRelease) {
+            console.log('Release process cancelled by user.');
+            process.exit(0);
+        }
+        
         // Backup files
         await backupFiles();
         
         try {
-            // Update versions
-            await updateVersion(config.pluginFile, currentVersion, newVersion);
-            await updateVersion(config.packageFile, currentVersion, newVersion);
+            // Update versions using the version manager
+            await versionManager.updateVersions(type);
+            
+            // Also update readme.txt if it exists
+            await updateReadmeVersion(newVersion);
             
             // Commit version changes
             execGitCommand('git add .');
@@ -236,8 +281,19 @@ async function release() {
             console.log('\nBuilding plugin...');
             const zipPath = await build();
             
-            // Create GitHub release
-            await createGitHubRelease(newVersion, changelogEntry, zipPath);
+            // Create GitHub release if selected
+            if (selectedPlatforms.includes('github')) {
+                console.log('\nCreating GitHub release...');
+                await createGitHubRelease(newVersion, changelogEntry, zipPath);
+                console.log('✅ GitHub release completed successfully');
+            }
+            
+            // Create SVN release if selected
+            if (selectedPlatforms.includes('svn')) {
+                console.log('\nCreating WordPress.org SVN release...');
+                await svnRelease(newVersion);
+                console.log('✅ WordPress.org SVN release completed successfully');
+            }
             
             console.log(`\n🎉 Successfully released version ${newVersion}!`);
         } catch (error) {

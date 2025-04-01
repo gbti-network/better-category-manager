@@ -1,8 +1,8 @@
 <?php
 /**
- * Term edit modal template for BCM Category Manager
+ * Term edit modal template for BCATM Category Manager
  *
- * @package BCM
+ * @package BCATM
  */
 
 // Prevent direct access
@@ -11,41 +11,41 @@ if (!defined('ABSPATH')) {
 }
 ?>
 
-<script type="text/template" id="tmpl-BCM-term-row">
-    <div class="BCM-term-row" data-id="{{ data.id }}" data-parent="{{ data.parent }}">
-        <div class="BCM-term-content">
+<script type="text/template" id="tmpl-BCATM-term-row">
+    <div class="BCATM-term-row" data-id="{{ data.id }}" data-parent="{{ data.parent }}">
+        <div class="BCATM-term-content">
             <!-- Drag Handle -->
-            <div class="BCM-term-handle" title="<?php esc_attr_e('Drag to reorder','better-category-manager'); ?>">
+            <div class="BCATM-term-handle" title="<?php esc_attr_e('Drag to reorder','better-category-manager'); ?>">
                 <span class="dashicons dashicons-menu"></span>
             </div>
 
             <!-- Expand/Collapse Button -->
             <# if (data.hasChildren) { #>
-            <button type="button" class="BCM-toggle-children"
+            <button type="button" class="BCATM-toggle-children"
                     title="<?php esc_attr_e('Toggle children visibility','better-category-manager'); ?>">
                 <span class="dashicons dashicons-arrow-right"></span>
             </button>
             <# } else { #>
-            <div class="BCM-toggle-placeholder" style="width: 24px;"></div>
+            <div class="BCATM-toggle-placeholder" style="width: 24px;"></div>
             <# } #>
 
             <!-- Term Information -->
-            <div class="BCM-term-info">
-                <span class="BCM-term-name">{{ data.name }}</span>
-                <span class="BCM-term-count"
+            <div class="BCATM-term-info">
+                <span class="BCATM-term-name">{{ data.name }}</span>
+                <span class="BCATM-term-count"
                       title="<?php esc_attr_e('Number of posts using this term','better-category-manager'); ?>">
                     {{ data.count || '0' }}
                 </span>
             </div>
 
             <!-- Term Actions -->
-            <div class="BCM-term-actions">
-                <button type="button" class="button BCM-quick-delete"
+            <div class="BCATM-term-actions">
+                <button type="button" class="button BCATM-quick-delete"
                         title="<?php esc_attr_e('Delete this term','better-category-manager'); ?>">
                     <span class="screen-reader-text"><?php esc_html_e('Delete','better-category-manager'); ?></span>
                     <span class="dashicons dashicons-trash"></span>
                 </button>
-                <button type="button" class="button BCM-edit-term"
+                <button type="button" class="button BCATM-edit-term"
                         title="<?php esc_attr_e('Edit this term','better-category-manager'); ?>">
                     <span class="screen-reader-text"><?php esc_html_e('Edit','better-category-manager'); ?></span>
                     <span class="dashicons dashicons-edit"></span>
@@ -55,14 +55,14 @@ if (!defined('ABSPATH')) {
     </div>
 </script>
 
-<script type="text/template" id="tmpl-BCM-term-form">
-    <form id="BCM-term-edit-form" class="BCM-term-form">
-        <?php wp_nonce_field('BCM_edit_term', 'BCM_term_nonce'); ?>
+<script type="text/template" id="tmpl-BCATM-term-form">
+    <form id="BCATM-term-edit-form" class="BCATM-term-form">
+        <?php wp_nonce_field('BCATM_edit_term', 'BCATM_term_nonce'); ?>
         <input type="hidden" id="term-id" name="term_id" value="{{ data.id }}">
         <input type="hidden" id="category-name" name="category" value="{{ data.category }}">
 
         <!-- Name Field -->
-        <div class="BCM-form-field">
+        <div class="BCATM-form-field">
             <label for="term-name">
                 <?php esc_html_e('Name','better-category-manager'); ?>
                 <span class="required">*</span>
@@ -80,7 +80,7 @@ if (!defined('ABSPATH')) {
         </div>
 
         <!-- Slug Field -->
-        <div class="BCM-form-field">
+        <div class="BCATM-form-field">
             <label for="term-slug"><?php esc_html_e('Slug','better-category-manager'); ?></label>
             <input type="text"
                    id="term-slug"
@@ -95,7 +95,7 @@ if (!defined('ABSPATH')) {
 
         <!-- Parent Field -->
         <# if (data.showParent) { #>
-        <div class="BCM-form-field">
+        <div class="BCATM-form-field">
             <label for="term-parent"><?php esc_html_e('Parent','better-category-manager'); ?></label>
             <select id="term-parent" name="parent">
                 {{{ data.parentDropdown }}}
@@ -107,7 +107,7 @@ if (!defined('ABSPATH')) {
         <# } #>
 
         <!-- Description Field -->
-        <div class="BCM-form-field">
+        <div class="BCATM-form-field">
             <label for="term-description"><?php esc_html_e('Description','better-category-manager'); ?></label>
             <textarea id="term-description"
                       name="description"
@@ -119,8 +119,8 @@ if (!defined('ABSPATH')) {
         </div>
 
         <!-- OpenAI Description Generator -->
-        <?php if (BCM\Settings::get_instance()->get_openai_api_key()): ?>
-            <div class="BCM-form-field openai-controls">
+        <?php if (BCATM\Settings::get_instance()->get_openai_api_key()): ?>
+            <div class="BCATM-form-field openai-controls">
                 <h3><?php esc_html_e('OpenAI Description Generator','better-category-manager'); ?></h3>
                 <label for="openai-prompt"><?php esc_html_e('Prompt','better-category-manager'); ?></label>
                 <textarea id="openai-prompt"
@@ -142,16 +142,16 @@ if (!defined('ABSPATH')) {
         <?php endif; ?>
 
         <!-- Form Actions -->
-        <div class="BCM-form-actions">
-            <button type="button" class="button button-link-delete BCM-delete-term">
+        <div class="BCATM-form-actions">
+            <button type="button" class="button button-link-delete BCATM-delete-term">
                 <span class="dashicons dashicons-trash"></span>
                 <?php esc_html_e('Delete','better-category-manager'); ?>
             </button>
 
-            <button type="button" class="button BCM-cancel-edit">
+            <button type="button" class="button BCATM-cancel-edit">
                 <?php esc_html_e('Cancel','better-category-manager'); ?>
             </button>
-            <button type="submit" class="button button-primary BCM-save-term">
+            <button type="submit" class="button button-primary BCATM-save-term">
                 <span class="dashicons dashicons-saved"></span>
                 <?php esc_html_e('Save Changes','better-category-manager'); ?>
             </button>
@@ -162,10 +162,10 @@ if (!defined('ABSPATH')) {
 <?php
 // Include helper template for empty state
 ?>
-<script type="text/template" id="tmpl-BCM-no-terms">
-    <div class="BCM-no-terms">
+<script type="text/template" id="tmpl-BCATM-no-terms">
+    <div class="BCATM-no-terms">
         <p><?php esc_html_e('No terms found.','better-category-manager'); ?></p>
-        <button type="button" class="button button-primary BCM-add-first-term">
+        <button type="button" class="button button-primary BCATM-add-first-term">
             <span class="dashicons dashicons-plus-alt2"></span>
             <?php esc_html_e('Add Your First Term','better-category-manager'); ?>
         </button>

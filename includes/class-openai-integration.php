@@ -1,8 +1,8 @@
 <?php
-namespace BCM;
+namespace BCATM;
 
 /**
- * Handles OpenAI API integration for the BCM Category Manager
+ * Handles OpenAI API integration for the BCATM Category Manager
  */
 class OpenAI_Integration {
     private static $instance = null;

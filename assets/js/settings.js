@@ -1,14 +1,14 @@
 var $ = jQuery.noConflict();
 
-const BCMSettings = {
-    strings: BCM_Settings.strings,
+const BCATMSettings = {
+    strings: BCATM_Settings.strings,
     init: function() {
         try {
-            console.log('BCM Settings: Initializing');
+            console.log('BCATM Settings: Initializing');
             this.bindEvents();
             this.initializeApiKeyValidation();
         } catch (error) {
-            console.error('BCMSettings initialization failed:', error);
+            console.error('BCATMSettings initialization failed:', error);
         }
     },
 
@@ -76,31 +76,47 @@ const BCMSettings = {
         
         // Make AJAX request to validate the API key
         $.ajax({
-            url: BCM_Settings.ajaxUrl,
+            url: BCATM_Settings.ajaxUrl,
             type: 'POST',
             data: {
                 action: 'bcm_validate_openai_api_key',
                 api_key: apiKey,
-                nonce: BCM_Settings.nonce
+                nonce: BCATM_Settings.nonce
             },
             success: function(response) {
                 $('.bcm-api-validation-message').remove();
                 
                 if (response.success) {
+                    let message = response.data.message;
+                    let iconClass = 'dashicons-yes';
+                    
+                    // If this is a cached response, use a different icon
+                    if (response.data.cached) {
+                        iconClass = 'dashicons-database-view';
+                    }
+                    
                     apiKeyField.after('<span class="bcm-api-validation-message bcm-validation-success">' +
-                                      '<span class="dashicons dashicons-yes"></span> ' +
-                                      response.data.message + '</span>');
+                                      '<span class="dashicons ' + iconClass + '"></span> ' +
+                                      message + '</span>');
                 } else {
+                    let message = response.data.message;
+                    let iconClass = 'dashicons-no';
+                    
+                    // If this is a cached response, use a different icon
+                    if (response.data.cached) {
+                        iconClass = 'dashicons-database-view';
+                    }
+                    
                     apiKeyField.after('<span class="bcm-api-validation-message bcm-validation-error">' +
-                                      '<span class="dashicons dashicons-no"></span> ' +
-                                      response.data.message + '</span>');
+                                      '<span class="dashicons ' + iconClass + '"></span> ' +
+                                      message + '</span>');
                 }
             },
             error: function() {
                 $('.bcm-api-validation-message').remove();
                 apiKeyField.after('<span class="bcm-api-validation-message bcm-validation-error">' +
                                   '<span class="dashicons dashicons-no"></span> ' +
-                                  BCM_Settings.strings.connectionError + '</span>');
+                                  BCATM_Settings.strings.connectionError + '</span>');
             }
         });
     },
@@ -119,5 +135,5 @@ const BCMSettings = {
 };
 
 $(document).ready(function() {
-    BCMSettings.init();
+    BCATMSettings.init();
 });

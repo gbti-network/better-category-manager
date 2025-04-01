@@ -1,4 +1,4 @@
-.BCM-import-export-controls {
+.BCATM-import-export-controls {
     display: inline-flex;
     gap: 8px;
     float: right;
@@ -12,7 +12,7 @@
     margin-bottom: 15px;
 }
 
-.BCM-import-export-controls .page-title-action {
+.BCATM-import-export-controls .page-title-action {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -22,18 +22,18 @@
     top: -3px;
 }
 
-.BCM-import-export-controls .dashicons {
+.BCATM-import-export-controls .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
     margin-top: 1px;
 }
 
-.BCM-import-wrapper {
+.BCATM-import-wrapper {
     display: inline-block;
 }
 
-#BCM-import-file {
+#BCATM-import-file {
     position: absolute;
     width: 1px;
     height: 1px;

@@ -1,14 +1,14 @@
 <?php
-namespace BCM;
+namespace BCATM;
 
 /**
- * Handles settings and configuration for the BCM Category Manager
+ * Handles settings and configuration for the BCATM Category Manager
  */
 class Settings {
     private static $instance = null;
-    private $option_group = 'BCM_settings';
-    private $option_name = 'BCM_settings';
-    private $settings_page = 'BCM-settings';
+    private $option_group = 'BCATM_settings';
+    private $option_name = 'BCATM_settings';
+    private $settings_page = 'BCATM-settings';
 
     /**
      * Get singleton instance
@@ -115,9 +115,10 @@ class Settings {
                     '</a>'
                 ),
                 'options' => [
-                    'gpt-3.5-turbo' => esc_html__('GPT-3.5 Turbo (Decent Performance, Low Cost)', 'better-category-manager'),
-                    'gpt-4o-mini' => esc_html__('GPT-4o Mini (Better Performance, Low-Moderate Cost)', 'better-category-manager'),
-                    'gpt-4o' => esc_html__('GPT-4o (Best Performance, Low-Moderate Cost)', 'better-category-manager')
+                    'gpt-3.5-turbo' => esc_html__('GPT-3.5 Turbo', 'better-category-manager'),
+                    'gpt-4o-mini' => esc_html__('GPT-4o Mini', 'better-category-manager'),
+                    'o3-mini' => esc_html__('O3-mini', 'better-category-manager'),
+                    'gpt-4o' => esc_html__('GPT-4o', 'better-category-manager')
                 ]
             ]
         );
@@ -154,21 +155,21 @@ class Settings {
      * Enqueue scripts and styles for the settings page
      */
     public function enqueue_settings_assets($hook) {
-        if ($hook !== 'settings_page_BCM-settings') {
+        if ($hook !== 'settings_page_BCATM-settings') {
             return;
         }
 
         // Styles
-        wp_enqueue_style('BCM-settings-css', BCM_PLUGIN_URL . 'assets/css/settings.css', [], BCM_VERSION);
+        wp_enqueue_style('BCATM-settings-css', BCATM_PLUGIN_URL . 'assets/css/settings.css', [], BCATM_VERSION);
         wp_enqueue_style('dashicons');
 
         // Scripts
-        wp_enqueue_script('BCM-utils', BCM_PLUGIN_URL . 'assets/js/utils.js', ['jquery'], BCM_VERSION, true);
-        wp_enqueue_script('BCM-settings-js', BCM_PLUGIN_URL . 'assets/js/settings.js', ['jquery'], BCM_VERSION, true);
+        wp_enqueue_script('BCATM-utils', BCATM_PLUGIN_URL . 'assets/js/utils.js', ['jquery'], BCATM_VERSION, true);
+        wp_enqueue_script('BCATM-settings-js', BCATM_PLUGIN_URL . 'assets/js/settings.js', ['jquery'], BCATM_VERSION, true);
         
-        wp_localize_script('BCM-settings-js', 'BCM_Settings', [
+        wp_localize_script('BCATM-settings-js', 'BCATM_Settings', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('BCM_settings_nonce'),
+            'nonce' => wp_create_nonce('BCATM_settings_nonce'),
             'strings' => [
                 'deleteConfirm' => esc_html__('Are you sure you want to delete this token?', 'better-category-manager'),
                 'tokenDeleted' => esc_html__('Token deleted successfully.', 'better-category-manager'),
@@ -183,7 +184,7 @@ class Settings {
      * Add settings link to plugins page
      */
     public function add_settings_link($links, $file) {
-        if (plugin_basename(BCM_PLUGIN_FILE) === $file) {
+        if (plugin_basename(BCATM_PLUGIN_FILE) === $file) {
             $settings_link = '<a href="' . admin_url('admin.php?page=' . $this->settings_page) . '">' . esc_html__('Settings', 'better-category-manager') . '</a>';
             array_unshift($links, $settings_link);
         }
@@ -217,10 +218,6 @@ class Settings {
                     <ul class="bcm-features-list">
                         <li class="bcm-feature-item">
                             <span class="dashicons dashicons-yes bcm-feature-icon"></span>
-                            <span class="bcm-feature-text"><?php echo esc_html__('Easy drag and drop interface for organizing category priority.', 'better-category-manager'); ?></span>
-                        </li>
-                        <li class="bcm-feature-item">
-                            <span class="dashicons dashicons-yes bcm-feature-icon"></span>
                             <span class="bcm-feature-text"><?php echo esc_html__('Easy child nesting for creating hierarchical category structures.', 'better-category-manager'); ?></span>
                         </li>
                         <li class="bcm-feature-item">
@@ -238,8 +235,8 @@ class Settings {
                 <div class="bcm-section bcm-settings-section">
                     <form method="post" action="options.php">
                         <?php
-                        settings_fields('BCM_settings');
-                        do_settings_sections('BCM-settings');
+                        settings_fields('BCATM_settings');
+                        do_settings_sections('BCATM-settings');
                         submit_button();
                         ?>
                     </form>
@@ -248,16 +245,12 @@ class Settings {
                 <!-- Pro Features Section -->
                 <div class="bcm-section bcm-pro-features-section">
                     <h2><?php echo esc_html__('Upgrade to a Better Taxonomy Manager', 'better-category-manager'); ?></h2>
-                    <p><?php echo esc_html__('Unlock advanced features with Better Taxonomy Manager, the premium version of this plugin:', 'better-category-manager'); ?></p>
+                    <p><?php echo esc_html__('Experience advanced features with Better Taxonomy Manager, the premium version of this plugin:', 'better-category-manager'); ?></p>
                     
                     <ul class="bcm-features-list">
                         <li class="bcm-feature-item bcm-locked">
                             <span class="dashicons dashicons-lock bcm-feature-icon"></span>
                             <span class="bcm-feature-text"><?php echo esc_html__('Manage all taxonomies, not just categories', 'better-category-manager'); ?></span>
-                        </li>
-                        <li class="bcm-feature-item bcm-locked">
-                            <span class="dashicons dashicons-lock bcm-feature-icon"></span>
-                            <span class="bcm-feature-text"><?php echo esc_html__('Bulk edit taxonomy terms with advanced tools', 'better-category-manager'); ?></span>
                         </li>
                         <li class="bcm-feature-item bcm-locked">
                             <span class="dashicons dashicons-lock bcm-feature-icon"></span>
@@ -270,7 +263,7 @@ class Settings {
                         <p><?php echo esc_html__('Join the GBTI Network and get access to Better Taxonomy Manager.', 'better-category-manager'); ?></p>
                         <button class="button bcm-become-sponsor">
                             <span class="dashicons dashicons-heart"></span>
-                            <?php echo esc_html__('Become a Sponsor', 'better-category-manager'); ?>
+                            <?php echo esc_html__('Join the GBTI Network', 'better-category-manager'); ?>
                         </button>
                     </div>
                 </div>
@@ -327,6 +320,8 @@ class Settings {
         $settings = get_option($this->option_name, $this->get_default_settings());
         $value = isset($settings[$option_name]) ? $settings[$option_name] : 0;
         ?>
+        <!-- Hidden field to ensure the setting exists in POST data even when checkbox is unchecked -->
+        <input type="hidden" name="<?php echo esc_attr($this->option_name); ?>[<?php echo esc_attr($option_name); ?>]" value="0">
         <input type="checkbox" id="<?php echo esc_attr($option_name); ?>" 
                name="<?php echo esc_attr($this->option_name); ?>[<?php echo esc_attr($option_name); ?>]" 
                value="1" <?php checked(1, $value); ?>>
@@ -429,6 +424,133 @@ class Settings {
         return $taxonomies;
     }
 
+    public function get_default_category() {
+        return 'category';
+    }
+
+    public function get_items_per_page() {
+        return 100;
+    }
+
+    public function should_show_count() {
+        $settings = get_option($this->option_name, $this->get_default_settings());
+        return isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : true;
+    }
+
+    /**
+     * Check OpenAI API key and show admin notice if needed
+     */
+    public function check_openai_api_key() {
+        // Only show on our settings page
+        $screen = get_current_screen();
+        if (!$screen || $screen->id !== 'settings_page_' . $this->settings_page) {
+            return;
+        }
+
+    }
+
+    /**
+     * AJAX handler for validating OpenAI API key
+     */
+    public function ajax_validate_openai_api_key() {
+        // Check nonce for security
+        check_ajax_referer('BCATM_settings_nonce', 'nonce');
+
+        // Check if API key is provided
+        if (!isset($_POST['api_key']) || empty($_POST['api_key'])) {
+            wp_send_json_error([
+                'message' => esc_html__('API key is required.', 'better-category-manager')
+            ]);
+        }
+
+        $api_key = sanitize_text_field(wp_unslash($_POST['api_key']));
+        
+        // Generate a unique transient name based on the API key
+        $transient_name = 'bcatm_api_key_validation_' . md5($api_key);
+        
+        // Check if we have a cached validation result
+        $cached_result = get_transient($transient_name);
+        if ($cached_result !== false) {
+            if ($cached_result === 'valid') {
+                wp_send_json_success([
+                    'message' => esc_html__('API key is valid! (cached)', 'better-category-manager'),
+                    'cached' => true
+                ]);
+            } else {
+                wp_send_json_error([
+                    'message' => $cached_result,
+                    'cached' => true
+                ]);
+            }
+            return;
+        }
+
+        // Make a test request to OpenAI API
+        $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type' => 'application/json',
+            ],
+            'body' => wp_json_encode([
+                'model' => $this->get_openai_model(),
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are a helpful assistant.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => 'Test'
+                    ]
+                ],
+                'max_tokens' => 5
+            ]),
+            'timeout' => 15,
+            'sslverify' => true,
+        ]);
+
+        // Check for errors in the response
+        if (is_wp_error($response)) {
+            $error_message = esc_html__('Connection error: ', 'better-category-manager') . esc_html($response->get_error_message());
+            // Cache the error for 30 minutes
+            set_transient($transient_name, $error_message, 30 * MINUTE_IN_SECONDS);
+            
+            wp_send_json_error([
+                'message' => $error_message
+            ]);
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        // Check if the request was successful based on HTTP status code
+        if ($status_code === 200) {
+            // Cache the successful result for 30 minutes
+            set_transient($transient_name, 'valid', 30 * MINUTE_IN_SECONDS);
+            
+            wp_send_json_success([
+                'message' => esc_html__('API key is valid!', 'better-category-manager')
+            ]);
+        } else {
+            // Format error message from OpenAI
+            $error_message = '';
+            if (!empty($data['error']['message'])) {
+                $error_message = esc_html($data['error']['message']);
+            } else {
+                $error_message = esc_html__('Invalid API key or API error.', 'better-category-manager');
+            }
+            
+            // Cache the error for 30 minutes
+            set_transient($transient_name, $error_message, 30 * MINUTE_IN_SECONDS);
+
+            wp_send_json_error([
+                'message' => $error_message,
+                'status' => $status_code
+            ]);
+        }
+    }
+
     /**
      * Get default settings
      */
@@ -508,102 +630,5 @@ class Settings {
         }
         
         return $taxonomies;
-    }
-
-    public function get_default_category() {
-        return 'category';
-    }
-
-    public function get_items_per_page() {
-        return 100;
-    }
-
-    public function should_show_count() {
-        $settings = get_option($this->option_name, $this->get_default_settings());
-        return isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : true;
-    }
-
-    /**
-     * Check OpenAI API key and show admin notice if needed
-     */
-    public function check_openai_api_key() {
-        // Only show on our settings page
-        $screen = get_current_screen();
-        if (!$screen || $screen->id !== 'settings_page_' . $this->settings_page) {
-            return;
-        }
-
-    }
-
-    /**
-     * AJAX handler for validating OpenAI API key
-     */
-    public function ajax_validate_openai_api_key() {
-        // Check nonce for security
-        check_ajax_referer('BCM_settings_nonce', 'nonce');
-
-        // Check if API key is provided
-        if (!isset($_POST['api_key']) || empty($_POST['api_key'])) {
-            wp_send_json_error([
-                'message' => esc_html__('API key is required.', 'better-category-manager')
-            ]);
-        }
-
-        $api_key = sanitize_text_field(wp_unslash($_POST['api_key']));
-
-        // Make a test request to OpenAI API
-        $response = wp_remote_post('https://api.openai.com/v1/chat/completions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $api_key,
-                'Content-Type' => 'application/json',
-            ],
-            'body' => wp_json_encode([
-                'model' => $this->get_openai_model(),
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a helpful assistant.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => 'Test'
-                    ]
-                ],
-                'max_tokens' => 5
-            ]),
-            'timeout' => 15,
-            'sslverify' => true,
-        ]);
-
-        // Check for errors in the response
-        if (is_wp_error($response)) {
-            wp_send_json_error([
-                'message' => esc_html__('Connection error: ', 'better-category-manager') . esc_html($response->get_error_message())
-            ]);
-        }
-
-        $status_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-
-        // Check if the request was successful based on HTTP status code
-        if ($status_code === 200) {
-            wp_send_json_success([
-                'message' => esc_html__('API key is valid!', 'better-category-manager')
-            ]);
-        } else {
-            // Format error message from OpenAI
-            $error_message = '';
-            if (!empty($data['error']['message'])) {
-                $error_message = esc_html($data['error']['message']);
-            } else {
-                $error_message = esc_html__('Invalid API key or API error.', 'better-category-manager');
-            }
-
-            wp_send_json_error([
-                'message' => $error_message,
-                'status' => $status_code
-            ]);
-        }
     }
 }

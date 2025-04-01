@@ -1,5 +1,5 @@
 <?php
-namespace BCM;
+namespace BCATM;
 
 /**
  * Handles import and export functionality for taxonomies
@@ -21,8 +21,8 @@ class Import_Export {
      * Constructor
      */
     private function __construct() {
-        add_action('wp_ajax_BCM_export_taxonomies', [$this, 'handle_export']);
-        add_action('wp_ajax_BCM_import_taxonomies', [$this, 'handle_import']);
+        add_action('wp_ajax_BCATM_export_taxonomies', [$this, 'handle_export']);
+        add_action('wp_ajax_BCATM_import_taxonomies', [$this, 'handle_import']);
     }
 
     /**
@@ -33,7 +33,7 @@ class Import_Export {
             wp_send_json_error(esc_html__('Insufficient permissions', 'better-category-manager'));
         }
 
-        check_ajax_referer('BCM_nonce', 'nonce');
+        check_ajax_referer('BCATM_nonce', 'nonce');
 
         // Get the current taxonomy from the request
         $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field(wp_unslash($_POST['taxonomy'])) : 'category';
@@ -128,7 +128,7 @@ class Import_Export {
             wp_send_json_error(esc_html__('Insufficient permissions', 'better-category-manager'));
         }
 
-        check_ajax_referer('BCM_nonce', 'nonce');
+        check_ajax_referer('BCATM_nonce', 'nonce');
 
         if (!isset($_FILES['import_file']) || !isset($_FILES['import_file']['tmp_name']) || empty($_FILES['import_file']['tmp_name'])) {
             wp_send_json_error(esc_html__('No file uploaded', 'better-category-manager'));

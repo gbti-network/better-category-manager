@@ -1,12 +1,12 @@
 <?php
-namespace BCM;
+namespace BCATM;
 
 /**
- * Handles all AJAX requests for the BCM Category Manager
+ * Handles all AJAX requests for the BCATM Category Manager
  */
 class Ajax_Handler {
     private static $instance = null;
-    private $nonce_key = 'BCM_nonce';
+    private $nonce_key = 'BCATM_nonce';
 
     /**
      * Get singleton instance
@@ -30,17 +30,17 @@ class Ajax_Handler {
      */
     private function register_ajax_handlers() {
         $ajax_actions = [
-            'BCM_get_terms',
-            'BCM_get_term_data',
-            'BCM_save_term',
-            'BCM_delete_term',
-            'BCM_generate_description',
-            'BCM_update_term_hierarchy',
-            'BCM_get_parent_terms' // Add new handler for parent terms
+            'BCATM_get_terms',
+            'BCATM_get_term_data',
+            'BCATM_save_term',
+            'BCATM_delete_term',
+            'BCATM_generate_description',
+            'BCATM_update_term_hierarchy',
+            'BCATM_get_parent_terms' // Add new handler for parent terms
         ];
 
         foreach ($ajax_actions as $action) {
-            add_action("wp_ajax_$action", [$this, str_replace('BCM_', 'handle_', $action)]);
+            add_action("wp_ajax_$action", [$this, str_replace('BCATM_', 'handle_', $action)]);
         }
     }
     /**
@@ -48,15 +48,20 @@ class Ajax_Handler {
      */
     public function handle_get_terms() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to view categories.', 'better-category-manager')]);
+        }
 
         // Force taxonomy to be 'category' since this is the Better Category Manager
         $taxonomy = 'category';
         $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
         
         // Get settings
-        $settings = get_option('BCM_settings', []);
-        $show_count = isset($settings['show_count']) ? (bool) $settings['show_count'] : true;
+        $settings = get_option('BCATM_settings', []);
+        $show_post_counts = isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : true;
 
         // Query args - always get all categories without pagination
         $args = [
@@ -86,7 +91,7 @@ class Ajax_Handler {
                 'name' => $term->name,
                 'slug' => $term->slug,
                 'description' => $term->description,
-                'count' => $show_count ? $term->count : 0, // Always include count, use 0 if show_count is false
+                'count' => $term->count, // Always include the actual count
                 'parent' => $term->parent,
                 'link' => get_term_link($term),
                 'level' => 0 // This will be calculated by the JS based on parent
@@ -100,7 +105,8 @@ class Ajax_Handler {
             'total_pages' => 1,
             'current_page' => 1,
             'per_page' => $total,
-            'is_hierarchical' => true
+            'is_hierarchical' => true,
+            'show_post_counts' => $show_post_counts // Add this flag to the response
         ];
         
         wp_send_json_success($response);
@@ -111,8 +117,8 @@ class Ajax_Handler {
      */
     private function build_term_tree($terms, $parent = 0, $level = 0) {
         // Get settings
-        $settings = get_option('BCM_settings', []);
-        $show_count = isset($settings['show_count']) ? (bool) $settings['show_count'] : true;
+        $settings = get_option('BCATM_settings', []);
+        $show_post_counts = isset($settings['show_post_counts']) ? (bool) $settings['show_post_counts'] : true;
         
         $tree = [];
         foreach ($terms as $term) {
@@ -122,7 +128,7 @@ class Ajax_Handler {
                     'name' => $term->name,
                     'slug' => $term->slug,
                     'description' => $term->description,
-                    'count' => $show_count ? $term->count : null,
+                    'count' => $show_post_counts ? $term->count : null,
                     'parent' => $term->parent,
                     'link' => get_term_link($term),
                     'level' => $level,
@@ -155,7 +161,12 @@ class Ajax_Handler {
      */
     public function handle_get_term_data() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to view category data.', 'better-category-manager')]);
+        }
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -260,7 +271,12 @@ class Ajax_Handler {
      */
     public function handle_save_term() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to manage categories.', 'better-category-manager')]);
+        }
 
         // Get data from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -313,7 +329,12 @@ class Ajax_Handler {
      */
     public function handle_delete_term() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to manage categories.', 'better-category-manager')]);
+        }
 
         // Get term ID and taxonomy from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -364,7 +385,12 @@ class Ajax_Handler {
      */
     public function handle_update_term_hierarchy() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to manage categories.', 'better-category-manager')]);
+        }
 
         // Get data from request
         $term_id = isset($_POST['term_id']) ? intval($_POST['term_id']) : 0;
@@ -389,7 +415,12 @@ class Ajax_Handler {
      */
     public function handle_generate_description() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to manage categories.', 'better-category-manager')]);
+        }
 
         // Get data from request
         $term_name = isset($_POST['term_name']) ? sanitize_text_field(wp_unslash($_POST['term_name'])) : '';
@@ -403,7 +434,7 @@ class Ajax_Handler {
         $prompt = str_replace('[TERM_NAME]', $term_name, $prompt);
         
         // Get API key from settings
-        $settings = get_option('BCM_settings', []);
+        $settings = get_option('BCATM_settings', []);
         $api_key = isset($settings['openai_api_key']) ? $settings['openai_api_key'] : '';
         
         if (empty($api_key)) {
@@ -431,8 +462,12 @@ class Ajax_Handler {
             'Authorization' => 'Bearer ' . $api_key
         ];
         
+        // Get the model from settings
+        $settings = get_option('BCATM_settings', []);
+        $model = isset($settings['openai_model']) ? $settings['openai_model'] : 'gpt-3.5-turbo';
+        
         $body = [
-            'model' => 'gpt-3.5-turbo',
+            'model' => $model,
             'messages' => [
                 [
                     'role' => 'system',
@@ -484,7 +519,12 @@ class Ajax_Handler {
      */
     public function handle_get_parent_terms() {
         // Verify nonce
-        check_ajax_referer($this->nonce_key, 'nonce', false);
+        check_ajax_referer($this->nonce_key, 'nonce', true);
+
+        // Check if user has capability to manage categories
+        if (!current_user_can('manage_categories')) {
+            wp_send_json_error(['message' => esc_html__('You do not have permission to view parent categories.', 'better-category-manager')]);
+        }
 
         // Get taxonomy from request - force 'category' for Better Category Manager
         $taxonomy = 'category';
@@ -500,7 +540,7 @@ class Ajax_Handler {
      * Get items per page from settings
      */
     private function get_items_per_page() {
-        $settings = get_option('BCM_settings', []);
+        $settings = get_option('BCATM_settings', []);
         return isset($settings['items_per_page']) ? intval($settings['items_per_page']) : 50;
     }
 }

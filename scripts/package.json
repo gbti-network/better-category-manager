@@ -1,6 +1,6 @@
 {
   "name": "better-category-manager-tools",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Development tools forBetter Category Manager Lite WordPress plugin",
   "main": "translate.js",
   "scripts": {

@@ -1,0 +1,12 @@
+.git*
+.env
+.vscode
+.idea
+*.log
+/scripts/
+/build/
+/dist/
+/node_modules/
+/svn/
+.product
+.data

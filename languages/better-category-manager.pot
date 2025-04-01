@@ -1,0 +1,434 @@
+# Copyright (C) 2025 GBTI
+# This file is distributed under the same license as theBetter Category Manager Lite plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version:Better Category Manager Lite 1.0.7.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/better-category-manager\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-03-16T23:54:41.307Z\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator:Better Category Manager Lite Translation Scanner 1.0\n"
+"X-Domain: better-category-manager\n"\n\nmsgid "Settings"
+msgstr ""
+
+msgid "Invalid term ID."
+msgstr ""
+
+msgid "Term not found."
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Name is required."
+msgstr ""
+
+msgid "Term does not exist."
+msgstr ""
+
+msgid "Failed to delete term."
+msgstr ""
+
+msgid "Term deleted successfully."
+msgstr ""
+
+msgid "Term hierarchy updated."
+msgstr ""
+
+msgid "Missing required parameters."
+msgstr ""
+
+msgid "OpenAI API key is not configured."
+msgstr ""
+
+msgid "Unknown error occurred."
+msgstr ""
+
+msgid "Invalid response from OpenAI."
+msgstr ""
+
+msgid "Category Manager"
+msgstr ""
+
+msgid "Export completed successfully."
+msgstr ""
+
+msgid "Export failed. Please try again."
+msgstr ""
+
+msgid "Import completed successfully."
+msgstr ""
+
+msgid "Import failed. Please try again."
+msgstr ""
+
+msgid "Please select a valid JSON file."
+msgstr ""
+
+msgid "Category updated successfully."
+msgstr ""
+
+msgid "Error saving category."
+msgstr ""
+
+msgid "Are you sure you want to delete this category?"
+msgstr ""
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Error loading categories."
+msgstr ""
+
+msgid "No categories found."
+msgstr ""
+
+msgid "Create Category"
+msgstr ""
+
+msgid "Edit Category"
+msgstr ""
+
+msgid "There are unsaved changes. Do you want to discard them?"
+msgstr ""
+
+msgid "Term updated successfully."
+msgstr ""
+
+msgid "Error deleting term."
+msgstr ""
+
+msgid "Failed to delete category."
+msgstr ""
+
+msgid "has been deleted"
+msgstr ""
+
+msgid "Delete this term"
+msgstr ""
+
+msgid "Click again to confirm deletion"
+msgstr ""
+
+msgid "Confirm Deletion"
+msgstr ""
+
+msgid "Error generating description."
+msgstr ""
+
+msgid "OpenAI API key is not configured. Please configure it in the settings."
+msgstr ""
+
+msgid "Error updating term hierarchy."
+msgstr ""
+
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+msgid "Insufficient permissions"
+msgstr ""
+
+msgid "Invalid taxonomy"
+msgstr ""
+
+msgid "%1$s export-%2$s.json"
+msgstr ""
+
+msgid "No file uploaded"
+msgstr ""
+
+msgid "Invalid file upload"
+msgstr ""
+
+msgid "Invalid JSON file"
+msgstr ""
+
+msgid "Taxonomy "%1$s" does not exist. Skipping."
+msgstr ""
+
+msgid "Import completed. Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d, Warnings: %5$d"
+msgstr ""
+
+msgid "Term missing required fields: %s"
+msgstr ""
+
+msgid "Duplicate slug found: %s"
+msgstr ""
+
+msgid "Parent slug not found: %1$s for term: %2$s"
+msgstr ""
+
+msgid "Multiple terms found with name "%1$s" using slugs: %2$s"
+msgstr ""
+
+msgid "Modified duplicate slug "%1$s" to "%2$s""
+msgstr ""
+
+msgid "Could not set parent "%1$s" for term "%2$s""
+msgstr ""
+
+msgid "Failed to generate description."
+msgstr ""
+
+msgid "WP Error:"
+msgstr ""
+
+msgid "Invalid response from OpenAI API."
+msgstr ""
+
+msgid "You are a helpful assistant specialized in writing clear, concise category term descriptions. Keep descriptions informative but brief, typically one to two sentences. Focus on explaining the term\'s purpose and context within its category. Avoid technical jargon unless necessary."
+msgstr ""
+
+msgid "Write a brief, clear description for the category term "[TERM_NAME]". Explain its purpose and how it helps organize content."
+msgstr ""
+
+msgid "General Settings"
+msgstr ""
+
+msgid "Show Count"
+msgstr ""
+
+msgid "Show the number of posts for each term."
+msgstr ""
+
+msgid "OpenAI API Key"
+msgstr ""
+
+msgid "Your OpenAI API key for generating term descriptions. %1$sGet your API key here%2$s."
+msgstr ""
+
+msgid "OpenAI Model"
+msgstr ""
+
+msgid "Select the OpenAI model to use for generating term descriptions. %1$sView OpenAI pricing and available models%2$s"
+msgstr ""
+
+msgid "GPT-3.5 Turbo (Decent Performance, Low Cost)"
+msgstr ""
+
+msgid "GPT-4o Mini (Better Performance, Low-Moderate Cost)"
+msgstr ""
+
+msgid "GPT-4o (Best Performance, Low-Moderate Cost)"
+msgstr ""
+
+msgid "Default AI Prompt"
+msgstr ""
+
+msgid "Default prompt for generating term descriptions with AI. Include [TERM_NAME] where the term name should be inserted."
+msgstr ""
+
+msgid "Are you sure you want to delete this token?"
+msgstr ""
+
+msgid "Token deleted successfully."
+msgstr ""
+
+msgid "Error deleting token. Please try again."
+msgstr ""
+
+msgid "Validating API key..."
+msgstr ""
+
+msgid "Error connecting to server. Please try again."
+msgstr ""
+
+msgid "Better Category Manager"
+msgstr ""
+
+msgid "Welcome to Better Category Manager"
+msgstr ""
+
+msgid "Better Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience."
+msgstr ""
+
+msgid "Key Features"
+msgstr ""
+
+msgid "Easy child nesting for creating hierarchical category structures."
+msgstr ""
+
+msgid "Quick editing of category names, slugs, and descriptions."
+msgstr ""
+
+msgid "OpenAI integrations for generating category descriptions automatically."
+msgstr ""
+
+msgid "Upgrade to a Better Taxonomy Manager"
+msgstr ""
+
+msgid "Unlock advanced features with Better Taxonomy Manager, the premium version of this plugin:"
+msgstr ""
+
+msgid "Manage all taxonomies, not just categories"
+msgstr ""
+
+msgid "Import/export taxonomy structures"
+msgstr ""
+
+msgid "Get Better Taxonomy Manager"
+msgstr ""
+
+msgid "Join the GBTI Network and get access to Better Taxonomy Manager."
+msgstr ""
+
+msgid "Become a Sponsor"
+msgstr ""
+
+msgid "Enjoying Better Category Manager?"
+msgstr ""
+
+msgid "Please consider leaving a 5-star review. It helps others discover this plugin and motivates us to keep improving it."
+msgstr ""
+
+msgid "Write a Review"
+msgstr ""
+
+msgid "Report an Issue"
+msgstr ""
+
+msgid "Request a Feature"
+msgstr ""
+
+msgid "Configure how categories should be displayed in the editor."
+msgstr ""
+
+msgid "Write a clear and concise description for the [TERM_NAME] category, explaining its purpose and how it helps organize content."
+msgstr ""
+
+msgid "API key is required."
+msgstr ""
+
+msgid "Connection error: "
+msgstr ""
+
+msgid "API key is valid!"
+msgstr ""
+
+msgid "Invalid API key or API error."
+msgstr ""
+
+msgid "Validate Key"
+msgstr ""
+
+msgid "Export Terms"
+msgstr ""
+
+msgid "Import Terms"
+msgstr ""
+
+msgid "WordPress Native Categories"
+msgstr ""
+
+msgid "OpenAI API key is not configured. Some features will be disabled."
+msgstr ""
+
+msgid "Configure now"
+msgstr ""
+
+msgid "Search Terms"
+msgstr ""
+
+msgid "Search terms..."
+msgstr ""
+
+msgid "Collapse All Terms"
+msgstr ""
+
+msgid "Collapse All"
+msgstr ""
+
+msgid "Expand All Terms"
+msgstr ""
+
+msgid "Expand All"
+msgstr ""
+
+msgid "Add New Term"
+msgstr ""
+
+msgid "Edit Term"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Drag to reorder"
+msgstr ""
+
+msgid "Toggle children visibility"
+msgstr ""
+
+msgid "Number of posts using this term"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Edit this term"
+msgstr ""
+
+msgid "Edit"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "The name is how it appears on your site."
+msgstr ""
+
+msgid "Slug"
+msgstr ""
+
+msgid "The "slug" is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens."
+msgstr ""
+
+msgid "Parent"
+msgstr ""
+
+msgid "Assign a parent term to create a hierarchy. The term will be a sub-item of the parent."
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "The description is not prominent by default; however, some themes may show it."
+msgstr ""
+
+msgid "OpenAI Description Generator"
+msgstr ""
+
+msgid "Prompt"
+msgstr ""
+
+msgid "Enter a prompt to generate a description..."
+msgstr ""
+
+msgid "Generate Description"
+msgstr ""
+
+msgid "Use OpenAI to generate a description based on the term name and your prompt."
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Save Changes"
+msgstr ""
+
+msgid "No terms found."
+msgstr ""
+
+msgid "Add Your First Term"
+msgstr ""
+

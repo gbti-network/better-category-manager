@@ -3,92 +3,164 @@
         "es_ES": {
             "enabled": true,
             "name": "Spanish",
-            "code": "es"
+            "code": "es",
+            "translationContext": {
+                "formalityLevel": "informal",
+                "specialInstructions": "Use informal tone (tú instead of usted). Maintain consistent WordPress terminology. Be aware that terms like 'Max Sibling Comments' should be translated conceptually, not literally. For example, 'Max Sibling Comments' should be 'Número máximo de comentarios al mismo nivel' not 'Comentarios de Hermanos Max'. Use 'Categoría' for Category, 'Categorías' for Categories, 'Principal' for Parent (not 'Superior'), 'Subcategoría' or 'Inferior' for Child (not 'Secundaria'), 'Del mismo nivel' for Sibling, 'Máximo' for Max, 'Comentarios' for Comments, 'Ajustes' for Settings, 'Panel de control' for Dashboard."
+            }
         },
         "de_DE": {
             "enabled": true,
             "name": "German",
-            "code": "de"
+            "code": "de",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone (Sie instead of du). German requires precise compound nouns. Maintain consistent WordPress terminology. Use 'Kategorie' for Category, 'Kategorien' for Categories, 'Übergeordnet' or 'Haupt-' for Parent, 'Untergeordnet' for Child, 'Gleiche Ebene' for Sibling (not 'Gleichrangig'), 'Maximum' for Max, 'Kommentare' for Comments, 'Einstellungen' for Settings, 'Dashboard' for Dashboard."
+            }
         },
         "fr_FR": {
             "enabled": true,
             "name": "French",
-            "code": "fr"
+            "code": "fr",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone (vous instead of tu). Pay attention to gender agreement. Maintain consistent WordPress terminology. Use 'Catégorie' for Category, 'Catégories' for Categories, 'Supérieur' for Parent, 'Enfant' for Child, 'De même niveau' or 'Frère/Sœur' for Sibling depending on context, 'Maximum' for Max, 'Commentaires' for Comments, 'Paramètres' for Settings, 'Tableau de bord' for Dashboard."
+            }
         },
         "pt_PT": {
             "enabled": true,
             "name": "Portuguese",
-            "code": "pt"
+            "code": "pt",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use European Portuguese (Portugal) rather than Brazilian Portuguese. Maintain consistent WordPress terminology. Use 'Categoria' for Category, 'Categorias' for Categories, 'Principal' for Parent, 'Subordinada' or 'Inferior' for Child (not 'Secundária'), 'Do mesmo nível' for Sibling, 'Máximo' for Max, 'Comentários' for Comments, 'Definições' for Settings, 'Painel de Controle' for Dashboard."
+            }
         },
         "he_IL": {
             "enabled": true,
             "name": "Hebrew",
-            "code": "he"
+            "code": "he",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Consider right-to-left text direction. Pay attention to gender agreement. Maintain consistent WordPress terminology. Use 'קטגוריה' for Category, 'קטגוריות' for Categories, 'הורה' for Parent, 'תת' or 'משני' for Child (not 'צאצא'), 'באותה רמה' for Sibling, 'מקסימום' for Max, 'תגובות' for Comments, 'הגדרות' for Settings, 'לוח בקרה' for Dashboard."
+            }
         },
         "ar": {
             "enabled": true,
             "name": "Arabic",
-            "code": "ar"
+            "code": "ar",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Consider right-to-left text direction. Pay attention to gender agreement. Maintain consistent WordPress terminology. Use 'تصنيف' for Category, 'تصنيفات' for Categories, 'رئيسي' or 'أعلى' for Parent (not 'أصلي'), 'فرعي' for Child, 'بنفس المستوى' for Sibling, 'الحد الأقصى' for Max, 'تعليقات' for Comments, 'إعدادات' for Settings, 'لوحة التحكم' for Dashboard."
+            }
         },
         "hi_IN": {
             "enabled": true,
             "name": "Hindi",
-            "code": "hi"
+            "code": "hi",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal Hindi. Maintain consistent WordPress terminology. Use 'श्रेणी' for Category, 'श्रेणियाँ' for Categories, 'मुख्य' for Parent, 'उपश्रेणी' for Child, 'समान स्तर' for Sibling, 'अधिकतम' for Max, 'टिप्पणियाँ' for Comments, 'समायोजन' or 'सेटिंग्स' for Settings, 'डैशबोर्ड' for Dashboard."
+            }
         },
         "ja_JP": {
             "enabled": true,
             "name": "Japanese",
-            "code": "ja"
+            "code": "ja",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use polite form (です/ます). Pay attention to technical terms that are commonly used in katakana. Maintain consistent WordPress terminology. Use 'カテゴリー' for Category and Categories, '親' for Parent, '子' for Child, '同レベル' for Sibling, '最大' for Max, 'コメント' for Comments, '設定' for Settings, 'ダッシュボード' for Dashboard."
+            }
         },
         "ko_KR": {
             "enabled": true,
             "name": "Korean",
-            "code": "ko"
+            "code": "ko",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal level of speech. Maintain consistent WordPress terminology. Use 'カテゴリー' for Category and Categories, '親' for Parent, '子' for Child, '同レベル' for Sibling, '最大' for Max, 'コメント' for Comments, '設定' for Settings, 'ダッシュボード' for Dashboard."
+            }
         },
         "it_IT": {
             "enabled": true,
             "name": "Italian",
-            "code": "it"
+            "code": "it",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone (Lei instead of tu). Maintain consistent WordPress terminology. Use 'Categoria' for Category, 'Categorie' for Categories, 'Genitore' for Parent, 'Figlio' for Child, 'Stesso livello' for Sibling, 'Massimo' for Max, 'Commenti' for Comments, 'Impostazioni' for Settings, 'Bacheca' for Dashboard."
+            }
         },
         "nl_NL": {
             "enabled": true,
             "name": "Dutch",
-            "code": "nl"
+            "code": "nl",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone (u instead of jij/je). Maintain consistent WordPress terminology. Use 'Categorie' for Category, 'Categorieën' for Categories, 'Bovenliggend' for Parent, 'Onderliggend' for Child, 'Op hetzelfde niveau' for Sibling (not 'Gelijkwaardig'), 'Maximum' for Max, 'Reacties' for Comments, 'Instellingen' for Settings, 'Dashboard' for Dashboard."
+            }
         },
         "pl_PL": {
             "enabled": true,
             "name": "Polish",
-            "code": "pl"
+            "code": "pl",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone. Pay attention to noun cases. Maintain consistent WordPress terminology. Use 'Kategoria' for Category, 'Kategorie' for Categories, 'Nadrzędna' for Parent, 'Podrzędna' for Child, 'Tego samego poziomu' for Sibling, 'Maksymalna' for Max, 'Komentarze' for Comments, 'Ustawienia' for Settings, 'Kokpit' for Dashboard."
+            }
         },
         "ru_RU": {
             "enabled": true,
             "name": "Russian",
-            "code": "ru"
+            "code": "ru",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone. Pay attention to noun cases and gender. Maintain consistent WordPress terminology. Use 'Категория' for Category, 'Категории' for Categories, 'Родительская' for Parent, 'Дочерняя' for Child, 'На одном уровне' for Sibling (not 'Того же уровня'), 'Максимум' for Max, 'Комментарии' for Comments, 'Настройки' for Settings, 'Панель управления' or 'Консоль' for Dashboard."
+            }
         },
         "sv_SE": {
             "enabled": true,
             "name": "Swedish",
-            "code": "sv"
+            "code": "sv",
+            "translationContext": {
+                "formalityLevel": "informal",
+                "specialInstructions": "Use informal tone (du). Maintain consistent WordPress terminology. Use 'Kategori' for Category, 'Kategorier' for Categories, 'Överordnad' for Parent, 'Underordnad' for Child, 'På samma nivå' for Sibling, 'Max' for Max, 'Kommentarer' for Comments, 'Inställningar' for Settings, 'Kontrollpanel' for Dashboard."
+            }
         },
         "el": {
             "enabled": true,
             "name": "Greek",
-            "code": "el"
+            "code": "el",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone. Pay attention to noun cases and gender. Maintain consistent WordPress terminology. Use 'Κατηγορία' for Category, 'Κατηγορίες' for Categories, 'Γονική' for Parent, 'Θυγατρική' for Child, 'Ίδιου επιπέδου' for Sibling, 'Μέγιστο' for Max, 'Σχόλια' for Comments, 'Ρυθμίσεις' for Settings, 'Πίνακας Ελέγχου' for Dashboard."
+            }
         },
         "fi": {
             "enabled": true,
             "name": "Finnish",
-            "code": "fi"
+            "code": "fi",
+            "translationContext": {
+                "formalityLevel": "formal",
+                "specialInstructions": "Use formal tone. Pay attention to noun cases. Maintain consistent WordPress terminology. Use 'Kategoria' for Category, 'Kategoriat' for Categories, 'Ylempi' for Parent, 'Alempi' for Child, 'Samantasoinen' for Sibling, 'Enintään' for Max, 'Kommentit' for Comments, 'Asetukset' for Settings, 'Hallintapaneeli' for Dashboard."
+            }
         },
         "da_DK": {
             "enabled": true,
             "name": "Danish",
-            "code": "da"
+            "code": "da",
+            "translationContext": {
+                "formalityLevel": "informal",
+                "specialInstructions": "Use informal tone. Maintain consistent WordPress terminology. Use 'Kategori' for Category, 'Kategorier' for Categories, 'Overordnet' for Parent, 'Underordnet' for Child, 'På samme niveau' for Sibling, 'Maksimum' for Max, 'Kommentarer' for Comments, 'Indstillinger' for Settings, 'Kontrolpanel' for Dashboard."
+            }
         },
         "nb_NO": {
             "enabled": true,
             "name": "Norwegian Bokmål",
-            "code": "nb"
+            "code": "nb",
+            "translationContext": {
+                "formalityLevel": "informal",
+                "specialInstructions": "Use informal tone. Maintain consistent WordPress terminology. Use 'Kategori' for Category, 'Kategorier' for Categories, 'Overordnet' for Parent, 'Underordnet' for Child, 'På samme nivå' for Sibling, 'Maksimum' for Max, 'Kommentarer' for Comments, 'Innstillinger' for Settings, 'Kontrollpanel' for Dashboard."
+            }
         }
     },
     "translationOptions": {
