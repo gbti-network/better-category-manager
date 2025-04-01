@@ -55,7 +55,7 @@ class Ajax_Handler {
             wp_send_json_error(['message' => esc_html__('You do not have permission to view categories.', 'better-category-manager')]);
         }
 
-        // Force taxonomy to be 'category' since this is the Better Category Manager
+        // Force taxonomy to be 'category' since this is the Advanced Category Manager
         $taxonomy = 'category';
         $search = isset($_POST['search']) ? sanitize_text_field(wp_unslash($_POST['search'])) : '';
         
@@ -215,7 +215,7 @@ class Ajax_Handler {
      * Get parent dropdown HTML
      */
     private function get_parent_dropdown_html($taxonomy, $exclude_id = 0, $selected = 0) {
-        // Force taxonomy to be 'category' for Better Category Manager
+        // Force taxonomy to be 'category' for Advanced Category Manager
         $taxonomy = 'category';
         
         // Get all terms
@@ -526,7 +526,7 @@ class Ajax_Handler {
             wp_send_json_error(['message' => esc_html__('You do not have permission to view parent categories.', 'better-category-manager')]);
         }
 
-        // Get taxonomy from request - force 'category' for Better Category Manager
+        // Get taxonomy from request - force 'category' for Advanced Category Manager
         $taxonomy = 'category';
         $exclude = isset($_POST['exclude']) ? intval($_POST['exclude']) : 0;
         

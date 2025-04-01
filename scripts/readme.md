@@ -1,6 +1,6 @@
-#Better Category Manager Build Scripts
+#Advanced Category Manager Build Scripts
 
-This directory contains the build and deployment scripts for theBetter Category Manager WordPress plugin. These scripts handle version management, building, and releasing to both GitHub and WordPress.org SVN repository.
+This directory contains the build and deployment scripts for theAdvanced Category Manager WordPress plugin. These scripts handle version management, building, and releasing to both GitHub and WordPress.org SVN repository.
 
 ## Prerequisites
 

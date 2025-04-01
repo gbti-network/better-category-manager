@@ -21,7 +21,7 @@ async function generateReport(data) {
 
     const reportPath = path.join(dataDir, 'translations-report.html');
     const timestamp = new Date().toLocaleString();
-    const pluginName = 'Better Category Manager';
+    const pluginName = 'Advanced Category Manager';
 
     // Prepare data for the report
     const totalStrings = data.changes ? 

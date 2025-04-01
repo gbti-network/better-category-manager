@@ -1,5 +1,5 @@
 /**
- *Better Category Manager Translation System - Main Script
+ *Advanced Category Manager Translation System - Main Script
  * 
  * Orchestrates the translation workflow:
  * 1. Generates POT file and tracks string changes

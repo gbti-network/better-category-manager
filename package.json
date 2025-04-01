@@ -1,6 +1,6 @@
 {
   "name": "better-category-manager",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A powerful WordPress plugin for advanced category management",
   "scripts": {
     "build": "node scripts/build.js --build-only",

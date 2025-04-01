@@ -131,21 +131,21 @@ ${text}`;
 
     generatePOContent(translations, locale) {
         const now = new Date().toISOString();
-        const header = `# Translation ofBetter Category Manager in ${this.config.languages[locale].name}
-# This file is distributed under the same license as theBetter Category Manager plugin.
+        const header = `# Translation ofAdvanced Category Manager in ${this.config.languages[locale].name}
+# This file is distributed under the same license as theAdvanced Category Manager plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version:Better Category Manager 1.0.7.1\\n"
+"Project-Id-Version:Advanced Category Manager 1.0.7.1\\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/better-category-manager\\n"
 "POT-Creation-Date: ${now}\\n"
 "PO-Revision-Date: ${now}\\n"
-"Last-Translator:Better Category Manager Translation System <opportunities@gbti.network>\\n"
+"Last-Translator:Advanced Category Manager Translation System <opportunities@gbti.network>\\n"
 "Language-Team: ${this.config.languages[locale].name} <${locale}@li.org>\\n"
 "Language: ${locale}\\n"
 "MIME-Version: 1.0\\n"
 "Content-Type: text/plain; charset=UTF-8\\n"
 "Content-Transfer-Encoding: 8bit\\n"
-"X-Generator:Better Category Manager Translation Generator 1.0\\n"
+"X-Generator:Advanced Category Manager Translation Generator 1.0\\n"
 "X-Domain: better-category-manager\\n"\\n\\n`;
 
         const entries = Object.entries(translations)

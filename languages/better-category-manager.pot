@@ -1,18 +1,24 @@
 # Copyright (C) 2025 GBTI
-# This file is distributed under the same license as the Better Category Manager plugin.
+# This file is distributed under the same license as the Advanced Category Manager plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version:Better Category Manager 1.0.7.1\n"
+"Project-Id-Version:Advanced Category Manager \n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/better-category-manager\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2025-03-16T23:54:41.307Z\n"
+"POT-Creation-Date: 2025-04-01T02:28:36.469Z\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator:Better Category Manager Translation Scanner 1.0\n"
+"X-Generator:Advanced Category Manager Translation Scanner 1.0\n"
 "X-Domain: better-category-manager\n"\n\nmsgid "Settings"
+msgstr ""
+
+msgid "You do not have permission to view categories."
+msgstr ""
+
+msgid "You do not have permission to view category data."
 msgstr ""
 
 msgid "Invalid term ID."
@@ -22,6 +28,9 @@ msgid "Term not found."
 msgstr ""
 
 msgid "None"
+msgstr ""
+
+msgid "You do not have permission to manage categories."
 msgstr ""
 
 msgid "Name is required."
@@ -49,6 +58,12 @@ msgid "Unknown error occurred."
 msgstr ""
 
 msgid "Invalid response from OpenAI."
+msgstr ""
+
+msgid "You do not have permission to view parent categories."
+msgstr ""
+
+msgid "Advanced Category Manager"
 msgstr ""
 
 msgid "Category Manager"
@@ -207,13 +222,16 @@ msgstr ""
 msgid "Select the OpenAI model to use for generating term descriptions. %1$sView OpenAI pricing and available models%2$s"
 msgstr ""
 
-msgid "GPT-3.5 Turbo (Decent Performance, Low Cost)"
+msgid "GPT-3.5 Turbo"
 msgstr ""
 
-msgid "GPT-4o Mini (Better Performance, Low-Moderate Cost)"
+msgid "GPT-4o Mini"
 msgstr ""
 
-msgid "GPT-4o (Best Performance, Low-Moderate Cost)"
+msgid "O3-mini"
+msgstr ""
+
+msgid "GPT-4o"
 msgstr ""
 
 msgid "Default AI Prompt"
@@ -237,13 +255,10 @@ msgstr ""
 msgid "Error connecting to server. Please try again."
 msgstr ""
 
-msgid "Better Category Manager"
+msgid "Welcome to Advanced Category Manager"
 msgstr ""
 
-msgid "Welcome to Better Category Manager"
-msgstr ""
-
-msgid "Better Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience."
+msgid "Advanced Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience."
 msgstr ""
 
 msgid "Key Features"
@@ -258,10 +273,10 @@ msgstr ""
 msgid "OpenAI integrations for generating category descriptions automatically."
 msgstr ""
 
-msgid "Upgrade to a Better Taxonomy Manager"
+msgid "Upgrade to a Advanced Taxonomy Manager"
 msgstr ""
 
-msgid "Unlock advanced features with Better Taxonomy Manager, the premium version of this plugin:"
+msgid "Experience advanced features with Advanced Taxonomy Manager, the premium version of this plugin:"
 msgstr ""
 
 msgid "Manage all taxonomies, not just categories"
@@ -270,16 +285,16 @@ msgstr ""
 msgid "Import/export taxonomy structures"
 msgstr ""
 
-msgid "Get Better Taxonomy Manager"
+msgid "Get Advanced Taxonomy Manager"
 msgstr ""
 
-msgid "Join the GBTI Network and get access to Better Taxonomy Manager."
+msgid "Join the GBTI Network and get access to Advanced Taxonomy Manager."
 msgstr ""
 
-msgid "Become a Sponsor"
+msgid "Join the GBTI Network"
 msgstr ""
 
-msgid "Enjoying Better Category Manager?"
+msgid "Enjoying Advanced Category Manager?"
 msgstr ""
 
 msgid "Please consider leaving a 5-star review. It helps others discover this plugin and motivates us to keep improving it."
@@ -297,10 +312,10 @@ msgstr ""
 msgid "Configure how categories should be displayed in the editor."
 msgstr ""
 
-msgid "Write a clear and concise description for the [TERM_NAME] category, explaining its purpose and how it helps organize content."
+msgid "API key is required."
 msgstr ""
 
-msgid "API key is required."
+msgid "API key is valid! (cached)"
 msgstr ""
 
 msgid "Connection error: "
@@ -310,6 +325,9 @@ msgid "API key is valid!"
 msgstr ""
 
 msgid "Invalid API key or API error."
+msgstr ""
+
+msgid "Write a clear and concise description for the [TERM_NAME] category, explaining its purpose and how it helps organize content."
 msgstr ""
 
 msgid "Validate Key"
@@ -430,5 +448,32 @@ msgid "No terms found."
 msgstr ""
 
 msgid "Add Your First Term"
+msgstr ""
+
+msgid "Upgrade to an Advanced Taxonomy Manager"
+msgstr ""
+
+msgid "Better Category Manager"
+msgstr ""
+
+msgid "Welcome to Better Category Manager"
+msgstr ""
+
+msgid "Better Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience."
+msgstr ""
+
+msgid "Upgrade to a Better Taxonomy Manager"
+msgstr ""
+
+msgid "Experience advanced features with Better Taxonomy Manager, the premium version of this plugin:"
+msgstr ""
+
+msgid "Get Better Taxonomy Manager"
+msgstr ""
+
+msgid "Join the GBTI Network and get access to Better Taxonomy Manager."
+msgstr ""
+
+msgid "Enjoying Better Category Manager?"
 msgstr ""
 

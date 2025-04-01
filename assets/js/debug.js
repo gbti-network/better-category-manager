@@ -1,5 +1,5 @@
 /**
- * Debug utility functions for Better Category Manager
+ * Debug utility functions for Advanced Category Manager
  */
 (function($) {
     'use strict';

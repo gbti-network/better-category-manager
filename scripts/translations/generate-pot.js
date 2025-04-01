@@ -15,7 +15,7 @@ function generatePOT() {
             fs.mkdirSync(languagesDir, { recursive: true });
         }
 
-        // Run theBetter Category Manager Translation Scanner
+        // Run theAdvanced Category Manager Translation Scanner
         execSync('node translations/scan-translations.js', {
             cwd: path.join(pluginRoot, 'scripts'),
             stdio: 'inherit'

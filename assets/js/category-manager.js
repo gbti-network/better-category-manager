@@ -109,7 +109,7 @@
          */
         initializeState() {
             this.state = {
-                currentCategory: 'category', // Always set to 'category' for Better Category Manager
+                currentCategory: 'category', // Always set to 'category' for Advanced Category Manager
                 currentTermId: null,
                 expandedTerms: new Set(),
                 isDragging: false,

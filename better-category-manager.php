@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Advanced Category Manager
  * Description: Advanced category management for WordPress with a clean, efficient interface for organizing post categories.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: gbti
  * Author URI: https://gbti.network
  * Contributors: gbti, Hudson Atwell
@@ -31,7 +31,7 @@ class BCATM_Plugin {
 
     private function set_constants() {
         define('BCATM_PLUGIN_FILE', __FILE__);
-        define('BCATM_VERSION', '1.0.2');
+        define('BCATM_VERSION', '1.0.3');
         define('BCATM_PLUGIN_DIR', plugin_dir_path(__FILE__));
         define('BCATM_PLUGIN_URL', plugin_dir_url(__FILE__));
         define('BCATM_LANGUAGES_DIR', BCATM_PLUGIN_DIR . 'languages');

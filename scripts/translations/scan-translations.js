@@ -62,10 +62,10 @@ async function generatePOT(strings) {
 
     // Generate POT header
     const potContent = `# Copyright (C) ${new Date().getFullYear()} GBTI
-# This file is distributed under the same license as the Better Category Manager plugin.
+# This file is distributed under the same license as the Advanced Category Manager plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version:Better Category Manager \\n"
+"Project-Id-Version:Advanced Category Manager \\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/better-category-manager\\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n"
 "Language-Team: LANGUAGE <LL@li.org>\\n"
@@ -74,7 +74,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\\n"
 "POT-Creation-Date: ${new Date().toISOString()}\\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n"
-"X-Generator:Better Category Manager Translation Scanner 1.0\\n"
+"X-Generator:Advanced Category Manager Translation Scanner 1.0\\n"
 "X-Domain: better-category-manager\\n"\\n\\n`;
 
     // Add string entries

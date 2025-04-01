@@ -1,5 +1,5 @@
 /**
- * Menu highlight script for Better Category Manager
+ * Menu highlight script for Advanced Category Manager
  * Ensures proper menu highlighting when viewing the category manager
  */
 jQuery(document).ready(function($) {

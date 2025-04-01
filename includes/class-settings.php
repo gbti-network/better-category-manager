@@ -244,7 +244,7 @@ class Settings {
 
                 <!-- Pro Features Section -->
                 <div class="bcm-section bcm-pro-features-section">
-                    <h2><?php echo esc_html__('Upgrade to a Advanced Taxonomy Manager', 'better-category-manager'); ?></h2>
+                    <h2><?php echo esc_html__('Upgrade to an Advanced Taxonomy Manager', 'better-category-manager'); ?></h2>
                     <p><?php echo esc_html__('Experience advanced features with Advanced Taxonomy Manager, the premium version of this plugin:', 'better-category-manager'); ?></p>
                     
                     <ul class="bcm-features-list">

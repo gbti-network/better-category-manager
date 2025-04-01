@@ -1,5 +1,5 @@
 /**
- * Utility functions for the Better Category Manager plugin
+ * Utility functions for the Advanced Category Manager plugin
  */
 (function($) {
     'use strict';
