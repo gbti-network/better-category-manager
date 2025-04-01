@@ -377,7 +377,7 @@ async function release(releaseType) {
                 // Push changes
                 console.log('\n🚀 Pushing changes to remote...');
                 execGitCommand('git push');
-                execGitCommand('git push --tags');
+                execGitCommand(`git push origin v${newVersion}`);
                 
                 // Perform GitHub release
                 console.log('\n🚀 Creating GitHub release...');
