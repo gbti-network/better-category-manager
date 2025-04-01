@@ -16,7 +16,7 @@ $current_category_name = $this->get_current_category();
 ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">
-            <?php echo esc_html__('Category Manager', 'better-category-manager'); ?>
+            <?php echo esc_html__('Advanced Category Manager', 'better-category-manager'); ?>
             <?php if ($current_category && $current_category->name !== 'category'): ?>
                 - <?php echo esc_html($current_category->labels->name); ?>
             <?php endif; ?>

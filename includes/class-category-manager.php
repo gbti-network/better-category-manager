@@ -37,7 +37,7 @@ class Admin {
         // Add a hidden page for the manager that's accessible via edit.php?page=BCATM-manager
         add_submenu_page(
             null,
-            esc_html__('Category Manager', 'better-category-manager'),
+            esc_html__('Advanced Category Manager', 'better-category-manager'),
             esc_html__('Category Manager', 'better-category-manager'),
             'manage_categories',
             'BCATM-manager',

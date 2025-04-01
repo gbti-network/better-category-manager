@@ -1,4 +1,4 @@
-# Better Category Manager
+# Advanced Category Manager
 
 A powerful WordPress plugin for advanced category management with AI-powered features and comprehensive logging capabilities.
 

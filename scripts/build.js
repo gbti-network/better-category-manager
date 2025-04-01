@@ -42,6 +42,8 @@ const config = {
         '.snapshots/**',
         '.data',
         '.data/**',
+        '.backup',
+        '.backup/**',
         // Environment and config files
         '.env',
         '.env.*',
@@ -60,9 +62,6 @@ const config = {
         'debug.log',
         '**/*.map',
         '**/*.log',
-        // Backup
-        '.backup',
-        '.backup/**',
         // Documentation
         'readme.md',
         'README.md',

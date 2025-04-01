@@ -363,22 +363,23 @@ async function release(releaseType) {
                 }, { skipRelease: true, skipVersionPrompt: true });
             });
             
-            // Commit changes
-            console.log('\n📝 Committing version changes...');
-            execGitCommand(`git add -A`);
-            execGitCommand(`git commit -m "Bump version to ${newVersion}"`);
-            
-            // Create tag
-            console.log(`\n🏷️ Creating tag v${newVersion}...`);
-            execGitCommand(`git tag -a v${newVersion} -m "Version ${newVersion}"`);
-            
-            // Push changes
-            console.log('\n🚀 Pushing changes to remote...');
-            execGitCommand('git push');
-            execGitCommand('git push --tags');
-            
-            // Perform GitHub release if requested
+            // Only perform Git operations if GitHub release is involved
             if (selectedReleaseType === 'github' || selectedReleaseType === 'both') {
+                // Commit changes
+                console.log('\n📝 Committing version changes...');
+                execGitCommand(`git add -A`);
+                execGitCommand(`git commit -m "Bump version to ${newVersion}"`);
+                
+                // Create tag
+                console.log(`\n🏷️ Creating tag v${newVersion}...`);
+                execGitCommand(`git tag -a v${newVersion} -m "Version ${newVersion}"`);
+                
+                // Push changes
+                console.log('\n🚀 Pushing changes to remote...');
+                execGitCommand('git push');
+                execGitCommand('git push --tags');
+                
+                // Perform GitHub release
                 console.log('\n🚀 Creating GitHub release...');
                 await createGitHubRelease(newVersion, changelog);
             }
@@ -386,7 +387,7 @@ async function release(releaseType) {
             // Perform SVN release if requested
             if (selectedReleaseType === 'svn' || selectedReleaseType === 'both') {
                 console.log('\n🚀 Creating SVN release...');
-                await svnRelease.releaseSvn(newVersion);
+                await svnRelease(newVersion);
             }
             
             console.log(`\n✅ Release ${newVersion} completed successfully!`);

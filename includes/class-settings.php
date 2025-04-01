@@ -200,7 +200,7 @@ class Settings {
             <!-- Header Banner -->
             <div class="bcm-header-banner">
                 <div class="bcm-logo-container">
-                    <h1><?php echo esc_html__('Better Category Manager', 'better-category-manager'); ?></h1>
+                    <h1><?php echo esc_html__('Advanced Category Manager', 'Advanced-category-manager'); ?></h1>
                 </div>
             </div>
 
@@ -208,8 +208,8 @@ class Settings {
             <div class="bcm-content-area">
                 <!-- Welcome Section -->
                 <div class="bcm-section bcm-welcome-section">
-                    <h2><?php echo esc_html__('Welcome to Better Category Manager', 'better-category-manager'); ?></h2>
-                    <p><?php echo esc_html__('Better Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience.', 'better-category-manager'); ?></p>
+                    <h2><?php echo esc_html__('Welcome to Advanced Category Manager', 'better-category-manager'); ?></h2>
+                    <p><?php echo esc_html__('Advanced Category Manager integrates seamlessly with your WordPress site to provide an enhanced category management experience. Use the settings below to customize your experience.', 'better-category-manager'); ?></p>
                 </div>
 
                 <!-- Features Section -->
@@ -244,8 +244,8 @@ class Settings {
 
                 <!-- Pro Features Section -->
                 <div class="bcm-section bcm-pro-features-section">
-                    <h2><?php echo esc_html__('Upgrade to a Better Taxonomy Manager', 'better-category-manager'); ?></h2>
-                    <p><?php echo esc_html__('Experience advanced features with Better Taxonomy Manager, the premium version of this plugin:', 'better-category-manager'); ?></p>
+                    <h2><?php echo esc_html__('Upgrade to a Advanced Taxonomy Manager', 'better-category-manager'); ?></h2>
+                    <p><?php echo esc_html__('Experience advanced features with Advanced Taxonomy Manager, the premium version of this plugin:', 'better-category-manager'); ?></p>
                     
                     <ul class="bcm-features-list">
                         <li class="bcm-feature-item bcm-locked">
@@ -259,8 +259,8 @@ class Settings {
                     </ul>
 
                     <div class="bcm-sponsor-box">
-                        <h3><?php echo esc_html__('Get Better Taxonomy Manager', 'better-category-manager'); ?></h3>
-                        <p><?php echo esc_html__('Join the GBTI Network and get access to Better Taxonomy Manager.', 'better-category-manager'); ?></p>
+                        <h3><?php echo esc_html__('Get Advanced Taxonomy Manager', 'better-category-manager'); ?></h3>
+                        <p><?php echo esc_html__('Join the GBTI Network and get access to Advanced Taxonomy Manager.', 'better-category-manager'); ?></p>
                         <button class="button bcm-become-sponsor">
                             <span class="dashicons dashicons-heart"></span>
                             <?php echo esc_html__('Join the GBTI Network', 'better-category-manager'); ?>
@@ -277,7 +277,7 @@ class Settings {
                         <span class="dashicons dashicons-star-filled"></span>
                         <span class="dashicons dashicons-star-filled"></span>
                     </div>
-                    <h3><?php echo esc_html__('Enjoying Better Category Manager?', 'better-category-manager'); ?></h3>
+                    <h3><?php echo esc_html__('Enjoying Advanced Category Manager?', 'better-category-manager'); ?></h3>
                     <p><?php echo esc_html__('Please consider leaving a 5-star review. It helps others discover this plugin and motivates us to keep improving it.', 'better-category-manager'); ?></p>
                     <button class="button bcm-write-review">
                         <?php echo esc_html__('Write a Review', 'better-category-manager'); ?>

@@ -1,4 +1,4 @@
-## Better Category Manager
+## Advanced Category Manager
 
 A WordPress plugin for managing taxonomies with extended functionality for term organization, debugging, and data integrity.
 

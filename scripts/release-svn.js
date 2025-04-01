@@ -252,7 +252,7 @@ async function createSvnTag(version) {
     
     // Create tag from trunk
     console.log('Creating new tag from trunk...');
-    execCommand(`svn cp trunk tags/${version}`, { cwd: config.svnDir });
+    execCommand(`svn cp "${svnTrunkDir}" "${svnTagDir}"`, { cwd: config.svnDir });
     
     console.log(`✅ SVN tag ${version} created`);
 }

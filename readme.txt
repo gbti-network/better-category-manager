@@ -1,4 +1,4 @@
-=== Better Category Manager ===
+=== Advanced Category Manager ===
 Authors: gbti
 Contributors: gbti, Hudson Atwell
 Donate link: https://github.com/sponsors/gbti-network
@@ -6,7 +6,7 @@ Tags: categories, category management, posts, blog organization
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -14,7 +14,7 @@ A WordPress plugin for advanced category management.
 
 == Description ==
 
-Better Category Manager provides an enhanced interface for managing WordPress categories. It offers an intuitive way to organize your post categories with features that go beyond the standard WordPress category management.
+Advanced Category Manager provides an enhanced interface for managing WordPress categories. It offers an intuitive way to organize your post categories with features that go beyond the standard WordPress category management.
 
 = Key Features =
 
@@ -24,9 +24,9 @@ Better Category Manager provides an enhanced interface for managing WordPress ca
 
 = Taxonomy Support =
 
-This free version of Better Category Manager works **only with WordPress post categories**. It does not support custom taxonomies, tags, or other term types.
+This free version of Advanced Category Manager works **only with WordPress post categories**. It does not support custom taxonomies, tags, or other term types.
 
-For full taxonomy management across all WordPress taxonomies, please check out our premium [Better Taxonomy Manager](https://gbti.network/products/better-taxonomy-manager/) plugin, available exclusively to GBTI Network members.
+For full taxonomy management across all WordPress taxonomies, please check out our premium [Advanced Taxonomy Manager](https://gbti.network/products/better-taxonomy-manager/) plugin, available exclusively to GBTI Network members.
 
 == Installation ==
 
@@ -91,7 +91,7 @@ For support inquiries, please use the [GitHub issue tracker](https://github.com/
 
 = Privacy =
 
-Better Category Manager respects your privacy and does not collect any personal data.
+Advanced Category Manager respects your privacy and does not collect any personal data.
 
 = Credits =
 
