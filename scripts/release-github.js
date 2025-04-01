@@ -332,6 +332,23 @@ module.exports = {
 
             // Initialize repository if needed
             await initializeRepository();
+            
+            // Check if tag already exists
+            try {
+                const tagExists = await octokit.repos.getReleaseByTag({
+                    owner: config.owner,
+                    repo: config.repo,
+                    tag: `v${version}`
+                });
+                
+                console.log(`Release with tag v${version} already exists. Skipping GitHub release creation.`);
+                return;
+            } catch (error) {
+                // Tag doesn't exist, continue with release creation
+                if (error.status !== 404) {
+                    throw error;
+                }
+            }
 
             // Create the release
             const release = await octokit.repos.createRelease({

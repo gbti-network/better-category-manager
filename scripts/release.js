@@ -287,10 +287,21 @@ async function release() {
             await updateReadmeVersion(newVersion);
             
             // Commit version changes
-            execGitCommand('git add .');
-            execGitCommand(`git commit -m "chore: bump version to ${newVersion}"`);
-            execGitCommand('git push origin develop');
-
+            console.log('Committing version changes...');
+            try {
+                // Add all changed files first
+                execGitCommand('git add .');
+                
+                // Then commit the changes
+                execGitCommand(`git commit -m "chore: bump version to ${newVersion}"`);
+                
+                // Push to develop branch
+                execGitCommand('git push origin develop');
+            } catch (error) {
+                console.error('Git command failed:', error.message);
+                throw new Error('Failed to commit version changes: ' + error.message);
+            }
+            
             // Merge develop into master
             console.log('\nMerging develop into master...');
             execGitCommand('git checkout master');
