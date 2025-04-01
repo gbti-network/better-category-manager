@@ -430,6 +430,9 @@ function rollbackOnError(error, newVersion, currentVersion) {
 
 /**
  * Main build function
+ * @param {Function} callback Callback function to be called when build is complete
+ * @param {Object} options Build options
+ * @returns {Promise<string>} Promise that resolves with the zip path if no callback is provided
  */
 function build(callback, options = {}) {
     // Default options
@@ -450,6 +453,47 @@ function build(callback, options = {}) {
     // Get current version
     var currentVersion = getCurrentVersion();
     console.log('Current version: ' + currentVersion);
+    
+    // If called from release script, we want to skip prompts and just build
+    if (require.main !== module || options.skipPrompts) {
+        // Create a promise if no callback is provided
+        if (!callback) {
+            return new Promise((resolve, reject) => {
+                // Copy files and then create zip
+                copyFiles(function(err) {
+                    if (err) {
+                        reject(err);
+                        return;
+                    }
+                    
+                    // Create zip file
+                    createZip()
+                        .then(zipPath => {
+                            console.log(`\n✅ Build completed successfully! Zip file created at: ${zipPath}`);
+                            resolve(zipPath);
+                        })
+                        .catch(reject);
+                }, options.silent);
+            });
+        } else {
+            // Use callback approach
+            copyFiles(function(err) {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+                
+                // Create zip file
+                createZip()
+                    .then(zipPath => {
+                        console.log(`\n✅ Build completed successfully! Zip file created at: ${zipPath}`);
+                        callback(null, zipPath);
+                    })
+                    .catch(err => callback(err));
+            }, options.silent);
+            return;
+        }
+    }
     
     // Skip prompts for test runs
     if (options.isTest || options.skipPrompts) {

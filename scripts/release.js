@@ -185,6 +185,28 @@ async function release() {
     try {
         validateEnvironment();
 
+        // Check current branch
+        const currentBranch = execGitCommand('git branch --show-current').trim();
+        if (currentBranch !== 'develop') {
+            console.warn('\n⚠️ WARNING: You are not on the develop branch!');
+            console.warn('The release process should start from the develop branch.');
+            
+            const { proceedAnyway } = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'proceedAnyway',
+                message: 'Do you want to proceed anyway? (Not recommended)',
+                default: false
+            }]);
+            
+            if (!proceedAnyway) {
+                console.log('\nRelease process cancelled. Please switch to the develop branch with:');
+                console.log('  git checkout develop');
+                process.exit(0);
+            } else {
+                console.log('\n⚠️ Proceeding with release from non-develop branch. This may cause issues!');
+            }
+        }
+
         const currentVersion = await getCurrentVersion();
         console.log(`Current version: ${currentVersion}`);
         
@@ -280,21 +302,15 @@ async function release() {
             // Build the plugin
             console.log('\nBuilding plugin...');
             
-            // Promisify the build function since it uses callbacks
-            const buildPromise = () => {
-                return new Promise((resolve, reject) => {
-                    build((err, zipPath) => {
-                        if (err) {
-                            reject(err);
-                            return;
-                        }
-                        resolve(zipPath);
-                    });
-                });
-            };
-            
-            // Get the zip path from the build process
-            let zipPath = await buildPromise();
+            // Build the plugin and get the zip path
+            let zipPath;
+            try {
+                zipPath = await build(null, { skipPrompts: true });
+                console.log(`Zip file created at: ${zipPath}`);
+            } catch (error) {
+                console.error('Error building plugin:', error);
+                throw error;
+            }
             
             if (!zipPath) {
                 console.log('Warning: No zip file was created during build process.');
