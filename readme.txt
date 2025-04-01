@@ -71,12 +71,12 @@ This feature is completely optional and requires you to provide your own OpenAI 
 
 == Changelog ==
 
-= 1.0.1 =
+= 1.0.3 =
 * Initial release
 
 == Upgrade Notice ==
 
-= 1.0.1 =
+= 1.0.3 =
 * Initial release
 
 == Additional Information ==
